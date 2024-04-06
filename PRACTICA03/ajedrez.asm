@@ -184,9 +184,57 @@ RowMajor MACRO
     ADD AL, BL              ; suma la columna
 
     MOV SI, AX              ; almacena el resultado en SI
-    MOV tablero[SI], 64     ; almacena la ficha en la posicion seleccionada
+    MOV tablero[SI], 64     
 
 ENDM
+
+printTablero MACRO
+    clearConsole
+    llenarTablero
+    printCadena saltoLinea
+    printTableroJuego
+
+    printCadena saltoLinea
+    printCadena entradafila
+    getOp row
+
+    CMP row, 32
+    JE Salir
+
+    printCadena entradaColumna
+    getOp col
+
+    CMP col, 32
+    JE Salir
+
+    RowMajor
+ENDM
+
+pedirMov MACRO
+    printCadena entradafila
+    getOp row
+
+    CMP row, 32
+    JE Salir
+
+    printCadena entradaColumna
+    getOp col
+
+    CMP col, 32
+    JE Salir
+
+    RowMajor
+ENDM
+
+printPuntajes MACRO
+
+ENDM
+
+printReportes MACRO
+
+ENDM
+
+
 
 ;---------------------------------------------------------
 .MODEL small
@@ -194,7 +242,9 @@ ENDM
 .STACK 64h
 
 .DATA 
-    messageInit db 10, 13, " UNIVERSIDAD DE SAN CARLOS DE GUATEMALA", 10, 13, " FACULTAD DE INGENIERIA", 10, 13, " ESCUELA DE CIENCIAS Y SISTEMAS", 10, 13," ARQUITECTURA DE COMPUTADORAS 1", 10, 13," SECCION A", 10, 13," Primer Semestre 2024", 10, 13," Sheila Amaya" , 10, 13," 202000558", 10, 13," Practica 3", 10, 13, "$"
+    messageInit db 10, 13, " UNIVERSIDAD DE SAN CARLOS DE GUATEMALA", 10, 13, " FACULTAD DE INGENIERIA", 10, 13 ," ESCUELA DE CIENCIAS Y SISTEMAS", 10, 13," ARQUITECTURA DE COMPUTADORAS 1", 10, 13, " PRACTICA 3", 10, 13, "$"
+    messageInit1 db " SECCION A", 10, 13," Primer Semestre 2024", " Sheila Amaya" , 10, 13," 202000558", 10, 13," Practica 3", 10, 13, "$"
+
     messageMenu db 10, 10, 13,"    MENU PRICIPAL", 10, 13 , 10, " 1. Nuevo Juego", 10, 13, " 2. Puntajes", 10, 13, " 3. Reportes", 10, 13, " 4. Salir", 10, 13, "    Seleccione una opcion: ", "$"
     op db 1 dup("$")                                ; variable para almacenar la opcion seleccionada del menu
     saltoLinea db 10, 13, "$"     
@@ -209,7 +259,6 @@ ENDM
     col db 1 dup("$")                               ; variable para almacenar la columna
 
 
-
 .CODE
     MOV AX, @data
     MOV DS, AX
@@ -217,52 +266,40 @@ ENDM
     Main  PROC                                    ; metodo Inicio del programa
         clearConsole
         printCadena messageInit 
-            
+        printCadena messageInit1
+
         Menu:
-            printCadena messageMenu
+            printCadena  messageMenu
             getOp op                              ; obtiene la opcion seleccionada
+            
             CMP op, 49                            ; compara si la opcion seleccionada es 1
-            JE printTablero
+            JE printTableroMacro
 
             CMP op, 50                            ; compara si la opcion seleccionada es 2
-            JE printPuntajes
+            JMP printPuntajesMacro
 
             CMP op, 51                           ; compara si la opcion seleccionada es 3 
-            JE printReportes
+            JE printReportesMacro
 
             CMP op, 52                           ; compara si la opcion seleccionada es 4
             JE Salir
 
             JMP Menu
 
-        printTablero:
-            clearConsole
-            llenarTablero
-            printCadena saltoLinea
-            printTableroJuego
-
-            printCadena saltoLinea
-            printCadena entradafila
-            getOp row
-
-            CMP row, 32
-            JE Salir
-
-
-            printCadena entradaColumna
-            getOp col
-
-            CMP col, 32
-            JE Salir
-
-            RowMajor
+        printTableroMacro:
+            printTablero
             JMP Menu
-        
-        pedirMov:
+            
+        pedirMovMacro:
+            pedirMov
+            JMP Menu
 
-        printPuntajes:
+        printPuntajesMacro:
+            printPuntajes
+            JMP Menu
 
-        printReportes: 
+        printReportesMacro: 
+            printReportes
             JMP Menu
 
         Salir:
