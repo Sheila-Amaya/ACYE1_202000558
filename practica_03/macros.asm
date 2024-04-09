@@ -9,13 +9,44 @@ printCadena MACRO registrop
     INT 21h
 ENDM
 
+
 getOp MACRO registrOp
     MOV AH, 01h
     INT 21h
     MOV registrOp, AL
 ENDM
+;------------------------------------------------------------- 
+
+obtenerCadena MACRO regBuffer, maxLength
+    ; Inicializar índice y contador de longitud
+    xor si, si
+
+    ; Bucle para leer caracteres
+    leer_caracter_bucle:
+        ; Leer un carácter sin eco
+        mov ah, 01h
+        int 21h
+
+        ; Verificar si es un enter (carácter ASCII 13)
+        cmp al, 13
+        je fin_lectura
+
+        ; Almacenar el carácter en el buffer
+        mov [regBuffer + si], al
+
+        ; Incrementar índice y contador de longitud
+        inc si
+        cmp si, maxLength
+        jge fin_lectura                  ; Si hemos alcanzado la longitud máxima, terminamos la lectura
+
+        jmp leer_caracter_bucle            ; Si no, volvemos a leer otro carácter
+
+    fin_lectura:
+        mov byte ptr [regBuffer + si], "$"
+    ENDM
 
 
+;-------------------------------------------------------------
 printTableroJuego MACRO
     LOCAL fila, columna
 
@@ -184,130 +215,119 @@ RowMajor MACRO
     ADD AL, BL              ; suma la columna
 
     MOV SI, AX              ; almacena el resultado en SI
-    MOV tablero[SI], 64     
-
-ENDM
-
-printTablero MACRO
-    clearConsole
-    llenarTablero
-    printCadena saltoLinea
-    printTableroJuego
-
-    printCadena saltoLinea
-    printCadena entradafila
-    getOp row
-
-    CMP row, 32
-    JE Salir
-
-    printCadena entradaColumna
-    getOp col
-
-    CMP col, 32
-    JE Salir
-
-    RowMajor
-ENDM
-
-pedirMov MACRO
-    printCadena entradafila
-    getOp row
-
-    CMP row, 32
-    JE Salir
-
-    printCadena entradaColumna
-    getOp col
-
-    CMP col, 32
-    JE Salir
-
-    RowMajor
-ENDM
-
-printPuntajes MACRO
-
-ENDM
-
-printReportes MACRO
+    MOV tablero[SI], 64     ; almacena la ficha en la posicion seleccionada
 
 ENDM
 
 
+;-------------------------------------------------------------
 
-;---------------------------------------------------------
-.MODEL small
+validarRangoFila MACRO
+    ; Solicitar y validar p_row
+    printCadena PosibleFila
+    getOp p_row
 
-.STACK 64h
+    CMP p_row, 49      ; Compara con 49 (el código ASCII de '1')
+    JL _Errorfila      ; Si es menor que 0, salta a la etiqueta de error
 
-.DATA 
-    messageInit db 10, 13, " UNIVERSIDAD DE SAN CARLOS DE GUATEMALA", 10, 13, " FACULTAD DE INGENIERIA", 10, 13 ," ESCUELA DE CIENCIAS Y SISTEMAS", 10, 13," ARQUITECTURA DE COMPUTADORAS 1", 10, 13, " PRACTICA 3", 10, 13, "$"
-    messageInit1 db " SECCION A", 10, 13," Primer Semestre 2024", " Sheila Amaya" , 10, 13," 202000558", 10, 13," Practica 3", 10, 13, "$"
+    CMP p_row, 56      ; Compara con 56 (el código ASCII de '8')
+    JG _Errorfila      ; Si es mayor que 8, salta a la etiqueta de error
 
-    messageMenu db 10, 10, 13,"    MENU PRICIPAL", 10, 13 , 10, " 1. Nuevo Juego", 10, 13, " 2. Puntajes", 10, 13, " 3. Reportes", 10, 13, " 4. Salir", 10, 13, "    Seleccione una opcion: ", "$"
-    op db 1 dup("$")                                ; variable para almacenar la opcion seleccionada del menu
-    saltoLinea db 10, 13, "$"     
-    tabulador db 9, "$"              
-    def_columnas db "   A B C D E F G H ", "$"
-    def_Filas db "12345678 ", "$"        
-    tablero db 64 dup(32)                           ; matriz de 8x8 para el tablero
-    delimitacion db "   - - - - - - - -   ", "$"
-    entradafila db 10,13, "Ingrese la fila: ", "$"
-    entradaColumna db 10,13,"Ingrese la columna: ", "$"
-    row db 1 dup("$")                               ; variable para almacenar la fila
-    col db 1 dup("$")                               ; variable para almacenar la columna
+    CMP p_row, 32      ; Compara con 32 (el código ASCII de ' ')
+    JE _Errorfila      ; Si es igual a 32, salta a la etiqueta de errorfila
+    JMP _ContinueFila 
 
+_Errorfila:
+    Errorfila
+_ContinueFila:
+ENDM
 
-.CODE
-    MOV AX, @data
-    MOV DS, AX
+validarRangoColumna MACRO
+    ; Solicitar y validar p_col
+    printCadena PosibleColumna
+    getOp p_col
 
-    Main  PROC                                    ; metodo Inicio del programa
-        clearConsole
-        printCadena messageInit 
-        printCadena messageInit1
+    CMP p_col, 65          ; Compara con 65 (el código ASCII de 'A')
+    JL _ErrorColumna        ; Si es menor que 0, salta a la etiqueta de error
 
-        Menu:
-            printCadena  messageMenu
-            getOp op                              ; obtiene la opcion seleccionada
-            
-            CMP op, 49                            ; compara si la opcion seleccionada es 1
-            JE printTableroMacro
+    CMP p_col, 72           ; Compara con 72 (el código ASCII de 'H')
+    JG _ErrorColumna        ; Si es mayor que 8, salta a la etiqueta de error
+    JMP _ContinueColumna
 
-            CMP op, 50                            ; compara si la opcion seleccionada es 2
-            JMP printPuntajesMacro
+    CMP p_col, 32           ; Compara con 32 (el código ASCII de ' ')
+    JE _ErrorColumna        ; Si es igual a 32, salta a la etiqueta de errorcolumna
+    JMP _ContinueColumna
 
-            CMP op, 51                           ; compara si la opcion seleccionada es 3 
-            JE printReportesMacro
+_ErrorColumna: 
+    errorColumna
+_ContinueColumna:
+ENDM
 
-            CMP op, 52                           ; compara si la opcion seleccionada es 4
-            JE Salir
+Errorfila MACRO
+    MOV AH, 09h
+    LEA DX, ErrorMessageF
+    INT 21h
+    JMP Menu
+ENDM
 
-            JMP Menu
+errorColumna MACRO
+    MOV AH, 09h
+    LEA DX, ErrorMessageC
+    INT 21h
+    JMP Menu
+ENDM
 
-        printTableroMacro:
-            printTablero
-            JMP Menu
-            
-        pedirMovMacro:
-            pedirMov
-            JMP Menu
+;------------------------------------------------------------- tiempo
+inicioTiempo MACRO
+    ; Guardar la hora inicial
+    mov ah, 2Ch
+    int 21h
+    mov horaInicial, ch
+    mov minutoInicial, cl
+    mov segundoInicial, dh
+ENDM
 
-        printPuntajesMacro:
-            printPuntajes
-            JMP Menu
+finTiempo MACRO
+    ; Guardar la hora final
+    mov ah, 2Ch
+    int 21h
+    mov horaFinal, ch
+    mov minutoFinal, cl
+    mov segundoFinal, dh
 
-        printReportesMacro: 
-            printReportes
-            JMP Menu
+    ; Calcular la duración en minutos y segundos
+    mov al, minutoFinal
+    sub al, minutoInicial
+    mov duracionMin, al
+    mov al, segundoFinal
+    sub al, segundoInicial
+    mov duracionSeg, al
+ENDM
 
-        Salir:
-            MOV Ax, 4C00h                     ; Termina el programa
-            INT 21h
+imprimirTiempo MACRO
+    ; Convertir la duración a una cadena
+    mov ah, 0
+    mov al, duracionMin
+    mov bl, 10
+    div bl
+    add ah, '0'
+    mov duracionStr[0], ah
+    add al, '0'
+    mov duracionStr[1], al
+    mov al, ':'
+    mov duracionStr[2], al
+    mov ah, 0
+    mov al, duracionSeg
+    div bl
+    add ah, '0'
+    mov duracionStr[3], ah
+    add al, '0'
+    mov duracionStr[4], al
+    mov al, '$'
+    mov duracionStr[5], al
 
-    Main ENDP
-
-END
-
-
+    ; Imprimir la duración
+    mov ah, 09h
+    lea dx, duracionStr
+    int 21h
+ENDM
