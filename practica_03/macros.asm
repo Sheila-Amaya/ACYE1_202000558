@@ -202,25 +202,50 @@ llenarTablero MACRO
         INC SI
 ENDM
 
-RowMajor MACRO
-    MOV AL, row             ; obtiene la fila
-    MOV BL, col             ; obtiene la columna
-
-    SUB AL, 49              ; convierte la fila a numero
-    SUB BL, 65              ; convierte la columna a numero
-
-    MOV BH, 8               ; almacena el numero de columnas
-
-    MUL BH                  ; multiplica la fila por el numero de columnas
-    ADD AL, BL              ; suma la columna
-
-    MOV SI, AX              ; almacena el resultado en SI
-    MOV tablero[SI], 64     ; almacena la ficha en la posicion seleccionada
-
-ENDM
-
 
 ;-------------------------------------------------------------
+validar_Fila_mov MACRO
+    ; Solicitar y validar row
+    printCadena PosibleFila
+    getOp row
+
+    CMP row, 49        ; Compara con 49 (el código ASCII de '1')
+    JL _ErrorfilaMov      ; Si es menor que 0, salta a la etiqueta de error
+
+    CMP row, 56        ; Compara con 56 (el código ASCII de '8')
+    JG _ErrorfilaMov      ; Si es mayor que 8, salta a la etiqueta de error
+
+    CMP row, 32        ; Compara con 32 (el código ASCII de ' ')
+    JE _Errorfila      ; Si es igual a 32, salta a la etiqueta de errorfila
+    JMP _ContinueFilaMov 
+
+_ErrorfilaMov:
+    Errorfila
+_ContinueFilaMov:
+ENDM
+
+validar_Col_mov MACRO
+    ; Solicita y validar col
+    printCadena PosibleColumna
+    getOp col
+
+    CMP col, 65             ; Compara con 65 (el código ASCII de 'A')
+    JL _ErrorColumnaMov        ; Si es menor que 0, salta a la etiqueta de error
+
+    CMP col, 72             ; Compara con 72 (el código ASCII de 'H')
+    JG _ErrorColumna        ; Si es mayor que 8, salta a la etiqueta de error
+    JMP _ContinueColumnaMov
+
+    CMP col, 32             ; Compara con 32 (el código ASCII de ' ')
+    JE _ErrorColumna        ; Si es igual a 32, salta a la etiqueta de errorcolumna
+    JMP _ContinueColumnaMov
+
+_ErrorColumnaMov: 
+    errorColumna
+_ContinueColumnaMov:
+ENDM
+
+;------------------------------------------------------------- 
 
 validarRangoFila MACRO
     ; Solicitar y validar p_row
@@ -280,17 +305,17 @@ ENDM
 ;------------------------------------------------------------- tiempo
 inicioTiempo MACRO
     ; Guardar la hora inicial
-    mov ah, 2Ch
-    int 21h
-    mov horaInicial, ch
-    mov minutoInicial, cl
-    mov segundoInicial, dh
+    MOV AH, 2Ch
+    INT 21h
+    MOV horaInicial, CH
+    MOV minutoInicial, CL
+    MOV segundoInicial, DH
 ENDM
 
 finTiempo MACRO
     ; Guardar la hora final
     mov ah, 2Ch
-    int 21h
+    INT 21h
     mov horaFinal, ch
     mov minutoFinal, cl
     mov segundoFinal, dh
@@ -306,28 +331,286 @@ ENDM
 
 imprimirTiempo MACRO
     ; Convertir la duración a una cadena
-    mov ah, 0
-    mov al, duracionMin
-    mov bl, 10
-    div bl
-    add ah, '0'
-    mov duracionStr[0], ah
-    add al, '0'
-    mov duracionStr[1], al
-    mov al, ':'
-    mov duracionStr[2], al
-    mov ah, 0
-    mov al, duracionSeg
-    div bl
-    add ah, '0'
-    mov duracionStr[3], ah
-    add al, '0'
-    mov duracionStr[4], al
-    mov al, '$'
-    mov duracionStr[5], al
+    MOV AH, 0
+    MOV AL, duracionMin
+    MOV BL, 10
+    DIV BL
+    ADD AH, '0'
+    MOV duracionStr[0], AH
+    ADD AL, '0'
+    MOV duracionStr[1], AL
+    MOV AL, ':'
+    MOV duracionStr[2], AL
+    MOV AL, 0
+    MOV AL, duracionSeg
+    DIV AL
+    ADD AH, '0'
+    MOV duracionStr[3], AH
+    ADD AL, '0'
+    MOV duracionStr[4], AL
+    MOV AL, '$'
+    MOV duracionStr[5], AL
 
     ; Imprimir la duración
-    mov ah, 09h
-    lea dx, duracionStr
-    int 21h
+    MOV AH, 09h
+    LEA AH, duracionStr
+    INT 21h
+ENDM
+
+RowMajor MACRO
+    MOV AL, row             ; obtiene la fila
+    MOV BL, col             ; obtiene la columna
+
+    SUB AL, 49              ; convierte la fila a numero
+    SUB BL, 65              ; convierte la columna a numero
+
+    MOV BH, 8               ; almacena el numero de columnas
+
+    MUL BH                  ; multiplica la fila por el numero de columnas
+    ADD AL, BL              ; suma la columna
+
+    MOV SI, AX              ; almacena el resultado en SI
+    MOV tablero[SI], 64     ; almacena la ficha en la posicion seleccionada
+
+ENDM
+;--------------------------------------------------------------
+
+LimpiarTablero MACRO
+    LOCAL Recorrido, Reemplazo
+
+    MOV SI, 0
+
+Recorrido:
+    MOV DL, tablero[SI] 
+    CMP DL, 120
+    JE Reemplazo
+    JNE Siguiente
+
+Reemplazo:
+    MOV tablero[SI], 32 
+
+Siguiente:
+    INC SI 
+    CMP SI, 64 
+    JB Recorrido 
+ENDM
+;------------------------------------------------------------- movimientos posibles
+
+movimientosPosibles MACRO
+    MOV AL, p_row
+    MOV BL, p_col
+    SUB AL, 49          ; convierte la fila a numero
+    SUB BL, 65          ; convierte la columna a numero
+    MOV DH, BL
+    MOV BH, 8
+    MUL BH
+    ADD AL, BL
+    MOV DL, AL        ; almacena la posicion en AL luego de op rowmajor
+    MOV SI, AX        ; verifica la pieza en la posicion seleccionada
+
+    MOV CH, 84
+    CMP tablero[SI], CH     ; Torre ASCCI T
+    JE _Torre
+
+    MOV CH, 67
+    CMP tablero[SI], CH     ; Caballo ASCCI C
+    JE _Caballo
+
+    MOV CH, 65
+    CMP tablero[SI], CH    ; Alfil ASCCI A
+    JE _Alfil
+
+    MOV CH, 82
+    CMP tablero[SI], CH     ; Rey ASCCI R
+    JE _Rey
+
+    MOV CH, 42
+    CMP tablero[SI], CH     ; Reina ASCCI *          
+    JE _Reina
+
+    MOV CH, 80
+    CMP tablero[SI], CH     ; Peon ASCCI P
+    JE _Peon
+
+_Fin:
+    JMP printTablero
+
+_Torre:
+    posibleMovTorre
+    JMP _FinMovimientos
+
+_Caballo:
+    posibleMovCaballo
+    JMP _FinMovimientos
+
+_Alfil:
+    posibleMovAlfil
+    JMP _FinMovimientos
+
+_Rey:
+    posibleMovRey
+    JMP _FinMovimientos
+
+_Reina:
+    posibleMovReina
+    JMP _FinMovimientos
+
+_Peon:
+    posibleMovPeon
+    JMP _FinMovimientos
+
+_FinMovimientos:
+
+ENDM
+
+posibleMovTorre MACRO
+
+
+ENDM
+
+posibleMovCaballo MACRO
+
+ENDM
+
+
+posibleMovAlfil MACRO
+
+ENDM
+
+posibleMovRey MACRO
+
+ENDM
+
+posibleMovReina MACRO
+
+ENDM
+
+posibleMovPeon MACRO    
+    SUB AL, 16                  ; mueve el peon hacia arriba
+    MOV SI, AX
+    CMP tablero[SI], 32         ; compara si la casilla esta vacia
+    JE _moverPeonBlanco
+
+    MOV AL, DL 
+    SUB AL, 8 
+    MOV SI, AX
+    CMP tablero[SI], 32
+    JE _moverPeonBlanco
+
+_moverPeonBlanco:
+    MOV tablero[SI], 120    ; coloca una x en la casilla
+    MOV AL, DL              
+    SUB AL, 8
+    MOV SI, AX
+    MOV tablero[SI], 120    ; coloca una x en la casilla
+
+ENDM
+
+MoverPieza MACRO 
+    ; Calcular la posición original y la nueva en el tablero
+    MOV AL, row
+    MOV BL, col
+    SUB AL, 49
+    SUB BL, 65  
+    MOV BH, 8
+    MUL BH
+    ADD AL, BL
+    MOV DL, AL
+    MOV SI, AX
+
+    CMP CH, 80
+    JE _MoverPeon
+
+    CMP CH, 84
+    JE _MoverTorre
+
+    CMP CH, 67
+    JE _MoverCaballo
+
+    CMP CH, 65
+    JE _MoverAlfil
+
+    CMP CH, 82
+    JE _MoverRey
+
+    CMP CH, 42
+    JE _MoverReina
+
+_MoverPeon:
+    MOV tablero[SI], 80
+    MOV AL, p_row
+    MOV BL, p_col
+    SUB AL, 49
+    SUB BL, 65
+    MOV BH, 8
+    MUL BH
+    ADD AL, BL
+    MOV SI, AX
+    MOV tablero[SI], 32
+
+
+_MoverTorre:
+    MOV tablero[SI], 84
+    MOV AL, p_row
+    MOV BL, p_col
+    SUB AL, 49
+    SUB BL, 65
+    MOV BH, 8
+    MUL BH
+    ADD AL, BL
+    MOV SI, AX
+    MOV tablero[SI], 32
+
+
+_MoverCaballo:
+    MOV tablero[SI], 67
+    MOV AL, p_row
+    MOV BL, p_col
+    SUB AL, 49
+    SUB BL, 65
+    MOV BH, 8
+    MUL BH
+    ADD AL, BL
+    MOV SI, AX
+    MOV tablero[SI], 32
+
+
+_MoverAlfil:
+    MOV tablero[SI], 65
+    MOV AL, p_row
+    MOV BL, p_col
+    SUB AL, 49
+    SUB BL, 65
+    MOV BH, 8
+    MUL BH
+    ADD AL, BL
+    MOV SI, AX
+    MOV tablero[SI], 32
+
+
+_MoverRey:  
+    MOV tablero[SI], 82
+    MOV AL, p_row
+    MOV BL, p_col
+    SUB AL, 49
+    SUB BL, 65
+    MOV BH, 8
+    MUL BH
+    ADD AL, BL
+    MOV SI, AX
+    MOV tablero[SI], 32
+
+
+_MoverReina:    
+    MOV tablero[SI], 42
+    MOV AL, p_row
+    MOV BL, p_col
+    SUB AL, 49
+    SUB BL, 65
+    MOV BH, 8
+    MUL BH
+    ADD AL, BL
+    MOV SI, AX
+    MOV tablero[SI], 32
+
 ENDM

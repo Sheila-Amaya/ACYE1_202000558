@@ -15,8 +15,11 @@ INCLUDE macros.asm
 
     nombreJugador db 50 dup(0)
     messageNombre db 10, 13, " Bienvenido ,Ingrese su nombre: ", "$"
-    ms1 db " VS. IA" , "$"
+    ms1 db " VS. IA    " , "$"
     buffer db 100 dup(0)
+
+    TurnoIA db " Turno de: IA ", "$"
+    TurnoJugador db " Turno de:  ", "$"
 
     ; menu
     messageMenu db 10, 10, 13,"    ======MENU PRICIPAL=====", 10, 13 , 10, " 1. Nuevo Juego", 10, 13, " 2. Puntajes", 10, 13, " 3. Reportes", 10, 13, " 4. Salir", 10, 13, "    Seleccione una opcion: ", "$"
@@ -41,9 +44,11 @@ INCLUDE macros.asm
     msMovimiento db 10,13, " Ingrese el movimiento: ", "$"
     entradafila db 10,13, " Ingrese la fila: ", "$"
     entradaColumna db 10,13," Ingrese la columna: ", "$"
-    row db 1 dup(32) , "$"                              ; variable para almacenar la fila
-    col db 1 dup(32),  "$"                              ; variable para almacenar la columna
+    row db 1 dup(32) ,  "$"                              ; variable para almacenar la fila
+    col db 1 dup(32) ,  "$"                              ; variable para almacenar la columna
 
+
+    msTiempo db " Tiempo: ", "$"
     horaInicial db ?
     minutoInicial db ?
     segundoInicial db ?
@@ -53,6 +58,7 @@ INCLUDE macros.asm
     duracionMin db ?
     duracionSeg db ?
     duracionStr db 6 dup(?)
+
 ;------------------------------------------------------------- tiempo
 
 .CODE
@@ -89,9 +95,9 @@ INCLUDE macros.asm
             inicioTiempo
             printCadena nombreJugador
             printCadena ms1
-            printCadena tabulador
-            printCadena tabulador
-            imprimirTiempo
+            ;printCadena tabulador
+            printCadena msTiempo
+            ;imprimirTiempo
             printCadena saltoLinea
 
             llenarTablero
@@ -103,13 +109,27 @@ INCLUDE macros.asm
             printCadena msPosibles
             validarRangoFila        ; posibleMovimiento
             validarRangoColumna     ; posibleMovimiento
+            clearConsole
 
-            RowMajor
-            finTiempo               ; AREGAR EN OTRO LUGAR :) 
-            JMP Menu
+            movimientosPosibles
+            printCadena saltoLinea
+            printTableroJuego
+
+            JMP pedirMov
         
         pedirMov:
+            
+            printCadena msMovimiento
+            validar_Fila_mov
+            validar_Col_mov
+            LimpiarTablero          ; quita las x de los posibles movimientos
 
+            MoverPieza
+            printCadena saltoLinea
+            clearConsole
+            printCadena saltoLinea
+            
+            JMP printTablero
 
         printPuntajes:
 
