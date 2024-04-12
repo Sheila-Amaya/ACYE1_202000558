@@ -15,6 +15,13 @@ getOp MACRO registrOp
     INT 21h
     MOV registrOp, AL
 ENDM
+
+getInput MACRO
+    MOV AH, 01h
+    INT 21h
+ENDM
+
+
 ;------------------------------------------------------------- 
 
 obtenerCadena MACRO regBuffer, maxLength
@@ -43,7 +50,7 @@ obtenerCadena MACRO regBuffer, maxLength
 
     fin_lectura:
         mov byte ptr [regBuffer + si], "$"
-    ENDM
+ENDM
 
 
 ;-------------------------------------------------------------
@@ -341,9 +348,10 @@ imprimirTiempo MACRO
     MOV duracionStr[1], AL
     MOV AL, ':'
     MOV duracionStr[2], AL
-    MOV AL, 0
+    MOV AH, 0
     MOV AL, duracionSeg
-    DIV AL
+    MOV BL, 10
+    DIV BL
     ADD AH, '0'
     MOV duracionStr[3], AH
     ADD AL, '0'
@@ -353,8 +361,32 @@ imprimirTiempo MACRO
 
     ; Imprimir la duración
     MOV AH, 09h
-    LEA AH, duracionStr
+    LEA DX, duracionStr
     INT 21h
+ENDM
+
+convertirTiempoACadena MACRO
+    ; Convertir la duración a una cadena
+    MOV AH, 0
+    MOV AL, duracionMin
+    MOV BL, 10
+    DIV BL
+    ADD AH, '0'
+    MOV duracionStr[0], AH
+    ADD AL, '0'
+    MOV duracionStr[1], AL
+    MOV AL, ':'
+    MOV duracionStr[2], AL
+    MOV AH, 0
+    MOV AL, duracionSeg
+    MOV BL, 10
+    DIV BL
+    ADD AH, '0'
+    MOV duracionStr[3], AH
+    ADD AL, '0'
+    MOV duracionStr[4], AL
+    MOV AL, '$'
+    MOV duracionStr[5], AL
 ENDM
 
 RowMajor MACRO
@@ -400,13 +432,14 @@ movimientosPosibles MACRO
     MOV AL, p_row
     MOV BL, p_col
     SUB AL, 49          ; convierte la fila a numero
-    SUB BL, 65          ; convierte la columna a numero
-    MOV DH, BL
+    SUB BL, 65          ; ingresa mayusculas
+    MOV DH, BL          ; almacena la columna en DH
     MOV BH, 8
     MUL BH
-    ADD AL, BL
-    MOV DL, AL        ; almacena la posicion en AL luego de op rowmajor
-    MOV SI, AX        ; verifica la pieza en la posicion seleccionada
+
+    ADD AL, BL         
+    MOV DL, AL         ; guarda el valor de la casilla, rowmajor 
+    MOV SI, AX         ; mueve la posicion al registro SI
 
     MOV CH, 84
     CMP tablero[SI], CH     ; Torre ASCCI T
@@ -417,7 +450,7 @@ movimientosPosibles MACRO
     JE _Caballo
 
     MOV CH, 65
-    CMP tablero[SI], CH    ; Alfil ASCCI A
+    CMP tablero[SI], CH     ; Alfil ASCCI A
     JE _Alfil
 
     MOV CH, 82
@@ -463,22 +496,92 @@ _FinMovimientos:
 
 ENDM
 
+
 posibleMovTorre MACRO
 
-
 ENDM
+
 
 posibleMovCaballo MACRO
 
 ENDM
 
-
 posibleMovAlfil MACRO
+    ; Diagonalmente hacia arriba a la derecha
+    moverDerechaArriba:
+    MOV AL, DL
+    MOV BL, DH
+    SUB AL, 7           ; resta 7 a la fila
+    ADD BL, 1           ; suma 1 a la columna
+    CMP BL, 7           ; compara si la columna es mayor a 7
+    JG moverIzquierdaArriba
+    MOV SI, AX
+    CMP tablero[SI], 32
+    JE _moverDAbajo
+    JMP _continue
 
-ENDM
+    ; mover diagonal hacia arriba a la izquierda
+    moverIzquierdaArriba:
+    MOV AL, DL
+    MOV BL, DH
+    SUB AL, 9           ; resta 9 a la fila
+    SUB BL, 1           ; resta 1 a la columna
+    CMP BL, 0           ; compara si la columna es menor a 0
+    JL moverDerechaAbajo
+    MOV SI, AX
+    CMP tablero[SI], 32
+    JE _moverIArriba
+    JMP _continue
 
-posibleMovRey MACRO
+    ; mover diagonal hacia abajo a la derecha
+    moverDerechaAbajo:
+    MOV AL, DL
+    MOV BL, DH
+    ADD AL, 9           ; suma 9 a la fila
+    ADD BL, 1           ; suma 1 a la columna
+    CMP BL, 7           ; compara si la columna es mayor a 7
+    JG moverIzquierdaAbajo
+    MOV SI, AX
+    CMP tablero[SI], 32
+    JE _moverDAbajo
+    JMP _continue
 
+    ; mover diagonal hacia abajo a la izquierda
+    moverIzquierdaAbajo:
+    MOV AL, DL
+    MOV BL, DH
+    ADD AL, 7           ; suma 7 a la fila
+    SUB BL, 1           ; resta 1 a la columna
+    CMP BL, 0           ; compara si la columna es menor a 0
+    JL moverDerechaAbajo
+    MOV SI, AX
+    CMP tablero[SI], 32
+    JE _moverIAbajo
+    JMP _continue
+
+_moverDArriba:
+    MOV tablero[SI], 120    ; coloca una x en la casilla
+    JMP moverDerechaArriba
+
+_moverDAbajo:
+    MOV tablero[SI], 120    ; coloca una x en la casilla
+    JMP moverIzquierdaArriba
+
+_moverIAbajo:
+    MOV tablero[SI], 120    ; coloca una x en la casilla
+    JMP moverDerechaAbajo
+
+_moverIArriba:
+    MOV tablero[SI], 120    ; coloca una x en la casilla
+    JMP moverIzquierdaAbajo
+
+_continue:
+
+ENDM 
+
+
+posibleMovRey MACRO 
+    
 ENDM
 
 posibleMovReina MACRO
@@ -506,6 +609,8 @@ _moverPeonBlanco:
 
 ENDM
 
+
+;-------------------------------------------------------------- mover pieza
 MoverPieza MACRO 
     ; Calcular la posición original y la nueva en el tablero
     MOV AL, row
@@ -614,3 +719,180 @@ _MoverReina:
     MOV tablero[SI], 32
 
 ENDM
+
+;------------------------------------------------------------- mov aleatorios
+
+
+
+;-------------------------------------------------------------
+CrearArchivo MACRO nombreArchivo, handler
+    LOCAL ManejarError, FinCrearArchivo
+    MOV BL,0
+
+    ; Crear el archivo
+    MOV AH, 3Ch
+    MOV CX, 00h
+    LEA DX, nombreArchivo
+    INT 21h
+
+    ; Verificar si se creó el archivo
+    MOV handler, AX
+    RCL BL, 1
+    CMP BL, 1
+    JE ManejarError
+    JMP FinCrearArchivo
+
+    ManejarError:
+        printCadena saltoLinea
+        printCadena ErrorCrearArchivo
+        getOp op
+
+    FinCrearArchivo:
+
+ENDM
+
+AbrirArchivo MACRO nombreArchivo, handler
+    LOCAL ManejarError, FinAbrirArchivo
+    MOV BL,0
+
+    ; Abrir el archivo
+    MOV AH, 3Dh
+    MOV AL, 00h
+    LEA DX, nombreArchivo
+    INT 21h
+
+    ; Verificar si se abrió el archivo
+    MOV handler, AX
+    RCL BL, 1
+    CMP BL, 1
+    JE ManejarError
+    JMP FinAbrirArchivo
+
+    ManejarError:
+        printCadena saltoLinea
+        printCadena ErrorAbrirArchivo
+        getOp op
+
+    FinAbrirArchivo:
+ENDM
+
+CerrarArchivo MACRO handler
+    LOCAL ManejarError, FinCerrarArchivo
+
+
+    ; Cerrar el archivo
+    MOV AH, 3Eh
+    MOV BX, handler
+    INT 21h
+
+    ; Verificar si se cerró el archivo
+    MOV BL, 0
+    RCL BL, 1
+    CMP BL, 1
+    JE ManejarError
+    JMP FinCerrarArchivo
+
+    ManejarError:
+        printCadena saltoLinea
+        printCadena ErrorCerrarArchivo
+        getOp op
+
+    FinCerrarArchivo:
+ENDM
+
+LeerArchivo MACRO buffer, handler
+    LOCAL ManejarError, FinLeerArchivo
+
+    ; Leer el archivo
+    MOV AH, 3Fh
+    MOV BX, handler
+    MOV CX, 100
+    LEA DX, buffer
+    INT 21h
+
+    ; Verificar si se leyó el archivo
+    MOV BL, 0
+    RCL BL, 1
+    CMP BL, 1
+    JE ManejarError
+    JMP FinLeerArchivo
+
+    ManejarError:
+        printCadena saltoLinea
+        printCadena ErrorLeerArchivo
+        getOps op
+
+    FinLeerArchivo:
+ENDM
+
+EscribirArchivo MACRO cadena, handler
+    LOCAL ManejarError, FinEscribirArchivo
+
+    ; Escribir en el archivo
+    MOV AH, 40h
+    MOV BX, handler
+    MOV CX, 70             ; tamanio de la cadena
+    LEA DX, cadena
+    INT 21h
+
+    ; Verificar si se escribió en el archivo
+    MOV BL, 1
+    RCL BL, 1
+    CMP BL, 1
+    JE ManejarError
+    JMP FinEscribirArchivo
+
+    ManejarError:
+        printCadena saltoLinea
+        printCadena ErrorEscribirArchivo
+        getOp  op
+
+    FinEscribirArchivo:
+ENDM
+
+EscribirArchivo2 MACRO cadena, handler
+    LOCAL ManejarError, FinEscribirArchivo
+
+    ; Escribir en el archivo
+    MOV AH, 40h
+    MOV BX, handler
+    MOV CX, 718             ; tamanio de la cadena
+    LEA DX, cadena
+    INT 21h
+
+    ; Verificar si se escribió en el archivo
+    MOV BL, 1
+    RCL BL, 1
+    CMP BL, 1
+    JE ManejarError
+    JMP FinEscribirArchivo
+
+    ManejarError:
+        printCadena saltoLinea
+        printCadena ErrorEscribirArchivo
+        getOp  op
+
+    FinEscribirArchivo:
+ENDM
+
+;------------------------------------------------------------- puntajes
+
+puntajeJuego MACRO nombreJugador
+    LOCAL imprimirPuntaje
+
+    imprimirPuntaje:
+        printCadena saltoLinea
+        printcadena encabezadoPuntaje
+        printCadena saltoLinea
+        printCadena tabulador
+        printCadena nombreJugador
+        printCadena tabulador
+        imprimirTiempo
+        printCadena saltoLinea
+        printCadena tabulador
+        printcadena nombreIA
+        printCadena tabulador
+        imprimirTiempo
+
+ENDM
+

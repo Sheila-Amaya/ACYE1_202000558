@@ -10,11 +10,15 @@ INCLUDE macros.asm
     messageInit db 10, 13, " UNIVERSIDAD DE SAN CARLOS DE GUATEMALA", 10, 13, " FACULTAD DE INGENIERIA", 10, 13, " ESCUELA DE CIENCIAS Y SISTEMAS", 10, 13," ARQUITECTURA DE COMPUTADORAS 1", 10, 13, "$"
     messageInit1 db " SECCION A", 10, 13, " Primer Semestre 2024", 10, 13, " Sheila Amaya", 10, 13, " 202000558", 10, 13, " Practica 3", 10, 13, "$"
     
+    msContinuar db 10, 13, "¿Desea volver al menu? (s/n): ", "$"
+    opcion db 1 dup("$")                                ; variable para almacenar la opcion seleccionada del menu
+
     ErrorMessageF db "    -> Error: fila fuera de rango", "$"
     ErrorMessageC db "    -> Error: columna fuera de rango", "$"
 
-    nombreJugador db 50 dup(0)
+    nombreJugador db 5 dup("$")
     messageNombre db 10, 13, " Bienvenido ,Ingrese su nombre: ", "$"
+    nombreIA db "IA", "$"
     ms1 db " VS. IA    " , "$"
     buffer db 100 dup(0)
 
@@ -47,6 +51,15 @@ INCLUDE macros.asm
     row db 1 dup(32) ,  "$"                              ; variable para almacenar la fila
     col db 1 dup(32) ,  "$"                              ; variable para almacenar la columna
 
+    row_IA db 1 dup(32)                              ; variable para almacenar la fila
+    col_IA db 1 dup(32)                               ; variable para almacenar la columna
+
+    newRow db 1 dup(32)                              ; variable para almacenar la nueva fila
+    newCol db 1 dup(32)                              ; variable para almacenar la nueva columna
+
+    piezas db 112, 116, 99, 97, 114, 35
+    piezaAleatoria DB ?
+    piezaActual DB ?
 
     msTiempo db " Tiempo: ", "$"
     horaInicial db ?
@@ -59,7 +72,32 @@ INCLUDE macros.asm
     duracionSeg db ?
     duracionStr db 6 dup(?)
 
-;------------------------------------------------------------- tiempo
+    encabezadoPuntaje db "      Nombre Jugador - Tiempo", "$"
+
+    handlerArchivo dw ?
+    handlerArchivo2 dw ?
+    nombreArchivo db "reporte.txt", 0
+    errorCrearArchivo db "Error al crear el archivo", "$"
+    ErrorAbrirArchivo db "Error al abrir el archivo", "$"
+    errorCerrarArchivo db "Error al cerrar el archivo", "$"
+    ErrorEscribirArchivo db "Error al escribir en el archivo", "$"
+    ErrorLeerArchivo db "Error al leer el archivo", "$"
+    bufferArchivo db 100 dup("$")
+
+    ;---------------------------------------------------------txt
+    contenidoArchivo  db "Reporte de partidas", 10, 13, "Nombre Jugador - Tiempo", 10, 13, "-------------------------", 10, 13, "$"
+
+
+    ;--------------------------------------------------------- html
+    nombreArchivoHtml db "reporte.htm", 0
+
+    contenidoArchivo2 db "<!DOCTYPE html>", 10, 13, "<html>", 10, 13, "<head>", 10, 13, "<title>Reporte</title>", 10, 13, "<meta charset='UTF-8'>", 10, 13, "<style>", 10, 13, "table {", 10, 13, "width: 50%;", 10, 13, "border-collapse: collapse;", 10, 13, "margin-top: 20px;", 10, 13, "}", 10, 13, "th, td {", 10, 13, "border: 1px solid black;"
+    contenidoArchivo3 db 10, 13, "padding: 8px;", 10, 13, "text-align: left;", 10, 13, "}", 10, 13, "th {", 10, 13, "background-color: #f2f2f2;", 10, 13, "}", 10, 13, "</style>", 10, 13, "</head>", 10, 13, "<body>", 10, 13, "<h1>REPORTE</h1>", 10, 13
+    contenidoArchivo4 db "<p>Nombre del curso: Arquitectura de computadores y ensambladores 1</p>", 10, 13, "<p>Sección: A</p>", 10, 13, "<p>Nombre del estudiante: Sheila Elizabeth Amaya Rodriguez</p>", 10, 13, "<p>Carne: 202000558</p>", 10, 13, "<p>Fecha Actual: </p>", 10, 13, "<h2>Puntajes de jugadores</h2>", 10, 13
+    contenidoArchivo5 db "<table>", 10, 13, "<tr>", 10, 13, "<th>Nombre del jugador</th>", 10, 13, "<th>Tiempo</th>", 10, 13, "</tr>", 10, 13, "<tr>", 10, 13, "<td></td>", 10, 13, "<td></td>", 10, 13, "</tr>", 10, 13, "<tr>", 10, 13, "<td></td>", 10, 13, "<td></td>", 10, 13, "</tr>", 10, 13, "</table>", 10, 13, "</body>", 10, 13, "</html>"
+
+;------------------------------------------------------------- 
+
 
 .CODE
     MOV AX, @data
@@ -93,16 +131,24 @@ INCLUDE macros.asm
         printTablero:
             clearConsole
             inicioTiempo
+            ;printCadena tabulador
+            llenarTablero
+            ; mueve la pieza de la IA
+
+            JMP pedirMov
+        
+        pedirMov:
+            inicioTiempo
             printCadena nombreJugador
             printCadena ms1
-            ;printCadena tabulador
             printCadena msTiempo
-            ;imprimirTiempo
+            imprimirTiempo
+            printCadena tabulador
+            printCadena TurnoJugador
+            printCadena nombreJugador
             printCadena saltoLinea
-
-            llenarTablero
             printCadena saltoLinea
-
+            
             printTableroJuego            
             printCadena saltoLinea
 
@@ -112,32 +158,69 @@ INCLUDE macros.asm
             clearConsole
 
             movimientosPosibles
+
+            printCadena nombreJugador
+            printCadena ms1
+            printCadena msTiempo
+            imprimirTiempo
+            printCadena tabulador
+            printCadena TurnoJugador
+            printCadena nombreJugador
+
             printCadena saltoLinea
             printTableroJuego
-
-            JMP pedirMov
-        
-        pedirMov:
             
             printCadena msMovimiento
             validar_Fila_mov
             validar_Col_mov
             LimpiarTablero          ; quita las x de los posibles movimientos
 
+            
+            printTableroJuego
             MoverPieza
+            
             printCadena saltoLinea
             clearConsole
             printCadena saltoLinea
+
+            printCadena msContinuar
+            getInput 
+            CMP opcion, 115         ; si la opcion es s
+            finTiempo
+            clearConsole
+            JE Menu
             
-            JMP printTablero
+            clearConsole
+            JMP pedirMov
 
         printPuntajes:
+            printCadena saltoLinea
+            puntajeJuego nombreJugador
+
 
         printReportes: 
+            MOV op, 0
+
+            CrearArchivo nombreArchivo, handlerArchivo
+            CrearArchivo nombreArchivoHtml, handlerArchivo2
+            CMP op, 13
+            JE Salir
+
+            EscribirArchivo contenidoArchivo, handlerArchivo
+            EscribirArchivo2 contenidoArchivo2, handlerArchivo2
+            CMP op, 13
+            JE Salir
+
+            cerrarArchivo handlerArchivo
+            cerrarArchivo handlerArchivo2
+            CMP op, 13
+            JE Salir
+
+            getOp op
             JMP Menu
 
         Salir:
-            MOV Ax, 4C00h                     ; Termina el programa
+            MOV AX, 4C00h                     ; Termina el programa
             INT 21h
 
     Main ENDP

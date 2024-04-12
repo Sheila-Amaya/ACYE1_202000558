@@ -1,0 +1,3 @@
+Reporte de partidas
+Nombre Jugador - Tiempo
+------------------------
