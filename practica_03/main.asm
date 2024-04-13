@@ -16,7 +16,8 @@ INCLUDE macros.asm
     ErrorMessageF db "    -> Error: fila fuera de rango", "$"
     ErrorMessageC db "    -> Error: columna fuera de rango", "$"
 
-    nombreJugador db 5 dup("$")
+    nombreJugador db 8 dup(32)
+    espacio db 1 dup("$")
     messageNombre db 10, 13, " Bienvenido ,Ingrese su nombre: ", "$"
     nombreIA db "IA", "$"
     ms1 db " VS. IA    " , "$"
@@ -51,11 +52,11 @@ INCLUDE macros.asm
     row db 1 dup(32) ,  "$"                              ; variable para almacenar la fila
     col db 1 dup(32) ,  "$"                              ; variable para almacenar la columna
 
-    row_IA db 1 dup(32)                              ; variable para almacenar la fila
-    col_IA db 1 dup(32)                               ; variable para almacenar la columna
+    row_IA db 1 dup(32)                                  ; variable para almacenar la fila
+    col_IA db 1 dup(32)                                  ; variable para almacenar la columna
 
-    newRow db 1 dup(32)                              ; variable para almacenar la nueva fila
-    newCol db 1 dup(32)                              ; variable para almacenar la nueva columna
+    newRow db 1 dup(32)                                 ; variable para almacenar la nueva fila
+    newCol db 1 dup(32)                                 ; variable para almacenar la nueva columna
 
     piezas db 112, 116, 99, 97, 114, 35
     piezaAleatoria DB ?
@@ -72,7 +73,9 @@ INCLUDE macros.asm
     duracionSeg db ?
     duracionStr db 6 dup(?)
 
-    encabezadoPuntaje db "      Nombre Jugador - Tiempo", "$"
+    horaHTML db 20 dup("$")
+
+    encabezadoPuntaje db " Nombre Jugador - Tiempo", "$"
 
     handlerArchivo dw ?
     handlerArchivo2 dw ?
@@ -89,15 +92,18 @@ INCLUDE macros.asm
 
 
     ;--------------------------------------------------------- html
-    nombreArchivoHtml db "reporte.htm", 0
+    nombreArchivoHtml db "reporte.html ", 0
 
     contenidoArchivo2 db "<!DOCTYPE html>", 10, 13, "<html>", 10, 13, "<head>", 10, 13, "<title>Reporte</title>", 10, 13, "<meta charset='UTF-8'>", 10, 13, "<style>", 10, 13, "table {", 10, 13, "width: 50%;", 10, 13, "border-collapse: collapse;", 10, 13, "margin-top: 20px;", 10, 13, "}", 10, 13, "th, td {", 10, 13, "border: 1px solid black;"
     contenidoArchivo3 db 10, 13, "padding: 8px;", 10, 13, "text-align: left;", 10, 13, "}", 10, 13, "th {", 10, 13, "background-color: #f2f2f2;", 10, 13, "}", 10, 13, "</style>", 10, 13, "</head>", 10, 13, "<body>", 10, 13, "<h1>REPORTE</h1>", 10, 13
-    contenidoArchivo4 db "<p>Nombre del curso: Arquitectura de computadores y ensambladores 1</p>", 10, 13, "<p>Sección: A</p>", 10, 13, "<p>Nombre del estudiante: Sheila Elizabeth Amaya Rodriguez</p>", 10, 13, "<p>Carne: 202000558</p>", 10, 13, "<p>Fecha Actual: </p>", 10, 13, "<h2>Puntajes de jugadores</h2>", 10, 13
-    contenidoArchivo5 db "<table>", 10, 13, "<tr>", 10, 13, "<th>Nombre del jugador</th>", 10, 13, "<th>Tiempo</th>", 10, 13, "</tr>", 10, 13, "<tr>", 10, 13, "<td></td>", 10, 13, "<td></td>", 10, 13, "</tr>", 10, 13, "<tr>", 10, 13, "<td></td>", 10, 13, "<td></td>", 10, 13, "</tr>", 10, 13, "</table>", 10, 13, "</body>", 10, 13, "</html>"
+    contenidoArchivo4 db "<p>Nombre del curso: Arquitectura de computadores y ensambladores 1</p>", 10, 13, "<p>Sección: A</p>", 10, 13, "<p>Nombre del estudiante: Sheila Elizabeth Amaya Rodriguez</p>", 10, 13, "<p>Carne: 202000558</p>", 10, 13, "<p>Fecha Actual: "
+    contenidoArchivo5 db "</p>", 10, 13, "<h2>Puntajes de jugadores</h2>", 10, 13
+    contenidoArchivo6 db "<table>", 10, 13, "<tr>", 10, 13, "<th>Jugador  -  Tiempo </th>", 10, 13, "</tr>", 10, 13, "<tr>", 10, 13, "<td><pre> "
+    contenidoArchivo7 db "</td>",  10, 13, "</tr>", 10, 13, "</table>", 10, 13, "</body>", 10, 13, "</html>"
 
 ;------------------------------------------------------------- 
-
+    contTxt db 256 dup("$")
+    bytesRead dw ?
 
 .CODE
     MOV AX, @data
@@ -109,9 +115,10 @@ INCLUDE macros.asm
         printCadena messageInit1
 
         printCadena messageNombre
-        obtenerCadena nombreJugador, 50
+        obtenerCadena nombreJugador, 15
 
         Menu:
+            clearConsole
             printCadena messageMenu
             getOp op                              ; obtiene la opcion seleccionada
             CMP op, 49                            ; compara si la opcion seleccionada es 1
@@ -138,6 +145,7 @@ INCLUDE macros.asm
             JMP pedirMov
         
         pedirMov:
+            clearConsole
             inicioTiempo
             printCadena nombreJugador
             printCadena ms1
@@ -194,20 +202,31 @@ INCLUDE macros.asm
             JMP pedirMov
 
         printPuntajes:
+
             printCadena saltoLinea
-            puntajeJuego nombreJugador
+            puntajeJuego 
 
 
         printReportes: 
             MOV op, 0
 
-            CrearArchivo nombreArchivo, handlerArchivo
+            ;CrearArchivo nombreArchivo, handlerArchivo
             CrearArchivo nombreArchivoHtml, handlerArchivo2
             CMP op, 13
             JE Salir
 
-            EscribirArchivo contenidoArchivo, handlerArchivo
-            EscribirArchivo2 contenidoArchivo2, handlerArchivo2
+            ;EscribirArchivo contenidoArchivo, handlerArchivo
+            ;EscribirArchivo2 contenidoArchivo2, handlerArchivo2
+            
+            EscribirArchivo4 contenidoArchivo2
+            EscribirArchivo4 contenidoArchivo3
+            EscribirArchivo4 contenidoArchivo4
+            ImpFechaHTML horaHTML
+            EscribirArchivo4 contenidoArchivo5
+            EscribirArchivo4 contenidoArchivo6
+
+            macroTexto2
+            EscribirArchivo4 contenidoArchivo7
             CMP op, 13
             JE Salir
 

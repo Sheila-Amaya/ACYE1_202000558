@@ -49,7 +49,7 @@ obtenerCadena MACRO regBuffer, maxLength
         jmp leer_caracter_bucle            ; Si no, volvemos a leer otro carácter
 
     fin_lectura:
-        mov byte ptr [regBuffer + si], "$"
+
 ENDM
 
 
@@ -255,9 +255,13 @@ ENDM
 ;------------------------------------------------------------- 
 
 validarRangoFila MACRO
+    LOCAL fin
     ; Solicitar y validar p_row
     printCadena PosibleFila
     getOp p_row
+
+    CMP p_row, 119     ; Compara con 119 (el código ASCII de 'w')
+    JE fin
 
     CMP p_row, 49      ; Compara con 49 (el código ASCII de '1')
     JL _Errorfila      ; Si es menor que 0, salta a la etiqueta de error
@@ -271,6 +275,11 @@ validarRangoFila MACRO
 
 _Errorfila:
     Errorfila
+
+fin:
+    EndGame
+    JMP pedirMov
+
 _ContinueFila:
 ENDM
 
@@ -293,6 +302,63 @@ validarRangoColumna MACRO
 _ErrorColumna: 
     errorColumna
 _ContinueColumna:
+ENDM
+
+EndGame MACRO params
+LOCAL inicio, valido, fin
+
+    AbrirArchivo3
+    AbrirArchivo4
+    CrearArchivo nombreArchivo, handlerArchivo
+    macroTexto
+    ;EscribirArchivo5 contTxt
+    EscribirArchivo5 saltoLinea
+    EscribirArchivo5 nombreJugador
+    EscribirArchivo5 duracionStr
+    cerrarArchivo handlerArchivo
+
+ENDM
+
+macroTexto MACRO
+    LOCAL inicio, fin
+        xor si, si
+        xor bx, bx
+
+        mov si, 00h
+        mov bl, "$"
+
+    inicio:
+        cmp si, 100h
+        je fin
+        mov bh, contTxt[si]
+        cmp bh, bl
+        je fin
+        inc si
+        jmp inicio
+
+    fin:
+        EscribirArchivo6 contTxt
+ENDM
+
+macroTexto2 MACRO
+    LOCAL inicio, fin
+        xor si, si
+        xor bx, bx
+
+        mov si, 00h
+        mov bl, "$"
+
+    inicio:
+        cmp si, 100h
+        je fin
+        mov bh, contTxt[si]
+        cmp bh, bl
+        je fin
+        inc si
+        jmp inicio
+
+    fin:
+        EscribirArchivo7 contTxt
 ENDM
 
 Errorfila MACRO
@@ -877,22 +943,183 @@ ENDM
 
 ;------------------------------------------------------------- puntajes
 
-puntajeJuego MACRO nombreJugador
+puntajeJuego MACRO 
     LOCAL imprimirPuntaje
 
     imprimirPuntaje:
         printCadena saltoLinea
         printcadena encabezadoPuntaje
+        AbrirArchivo3 
         printCadena saltoLinea
-        printCadena tabulador
-        printCadena nombreJugador
-        printCadena tabulador
-        imprimirTiempo
-        printCadena saltoLinea
-        printCadena tabulador
-        printcadena nombreIA
-        printCadena tabulador
-        imprimirTiempo
+        printCadena contTxt
 
 ENDM
 
+;-------------------------------------------------------------
+EscribirArchivo4 MACRO params 
+    mov ah, 40h  ; Función 40h: Escribir en archivo
+    mov bx, handlerArchivo2  ; Manejador de archivo
+    lea dx, params     ; Mensaje a escribir
+    mov cx, lengthof params  ; Número de bytes a escribir
+    dec cx       ; Excluir el carácter de fin de cadena
+    int 21h      ; Llamar a DOS
+ENDM
+
+
+EscribirArchivo5 MACRO params 
+    mov ah, 40h  ; Función 40h: Escribir en archivo
+    mov bx, handlerArchivo  ; Manejador de archivo
+    lea dx, params     ; Mensaje a escribir
+    mov cx, lengthof params  ; Número de bytes a escribir
+    dec cx       ; Excluir el carácter de fin de cadena
+    int 21h      ; Llamar a DOS
+ENDM
+
+EscribirArchivo6 MACRO params 
+    mov ah, 40h  ; Función 40h: Escribir en archivo
+    mov bx, handlerArchivo  ; Manejador de archivo
+    lea dx, params     ; Mensaje a escribir
+    mov cx, si  ; Número de bytes a escribir
+    dec cx       ; Excluir el carácter de fin de cadena
+    int 21h      ; Llamar a DOS
+ENDM
+
+EscribirArchivo7 MACRO params 
+    mov ah, 40h  ; Función 40h: Escribir en archivo
+    mov bx, handlerArchivo2  ; Manejador de archivo
+    lea dx, params     ; Mensaje a escribir
+    mov cx, si  ; Número de bytes a escribir
+    dec cx       ; Excluir el carácter de fin de cadena
+    int 21h      ; Llamar a DOS
+ENDM
+
+ImpFechaHTML MACRO salidaSTR
+    ; Obtener la fecha actual
+    mov ah, 2Ah                 ; Servicio para obtener la fecha actual
+    int 21h                     ; Llamar a la interrupción DOS
+
+    xor ax, ax
+    mov bl, 0ah
+
+    mov al, dl
+    div bl
+    add al, 30h
+    add ah, 30h
+    mov [salidaSTR], al         ; Guardar decena día
+    mov [salidaSTR + 1], ah     ; Guardar unidad día
+    mov [salidaSTR + 2], 47
+
+    xor ax, ax
+
+    mov al, dh
+    div bl
+    add al, 30h
+    add ah, 30h
+    mov [salidaSTR + 3], al     ; Guardar decena mes
+    mov [salidaSTR + 4], ah     ; Guardar unidad mes
+    mov [salidaSTR + 5], 47
+
+    mov ax, cx 
+    mov dx, 0h
+    div bx
+    add dl, 30h
+    mov [salidaSTR + 9], dl     ; Guardar unidades año
+    
+    div bl
+    add ah, 30h
+    mov [salidaSTR + 8], ah     ; Guardar decenas año
+    xor ah,ah
+
+    div bl
+    add ah, 30h
+    mov [salidaSTR + 7], ah     ; Guardar centenas año
+    xor ah,ah
+
+    div bl
+    add ah, 30h
+    mov [salidaSTR + 6], ah     ; Guardar millares año
+    xor ah,ah
+
+    mov [salidaSTR + 10], 32
+
+    mov ah, 2Ch       ; Servicio para obtener la hora actual
+    int 21h           ; Llamar a la interrupción DOS
+
+    mov bl, 0ah
+    xor ax, ax
+    mov al, ch        ; Hora actual
+    div bl
+    add al, 30h
+    add ah, 30h
+    mov [salidaSTR + 11], al ; Guardar hora
+    mov [salidaSTR + 12], ah
+
+    mov [salidaSTR + 13], 58 ; Caracter ':'
+
+    xor ax, ax
+    mov al, cl        ; Minutos actuales
+    div bl
+    add al, 30h
+    add ah, 30h
+    mov [salidaSTR + 14], al ; Guardar minutos
+    mov [salidaSTR + 15], ah 
+
+    mov [salidaSTR + 16], 58 ; Caracter ':'
+
+    xor ax, ax
+    mov al, dh        ; Segundos actuales
+    div bl
+    add al, 30h
+    add ah, 30h
+    mov [salidaSTR + 17], al ; Guardar segundos
+    mov [salidaSTR + 18], ah
+    ;mov [segundos], dh ; Guardar minutos
+
+
+
+    EscribirArchivo4 salidaSTR
+ENDM
+
+AbrirArchivo3 MACRO 
+LOCAL file_not_found, read_file , fin
+    mov ah, 3Dh  ; Función 3Dh: Abrir archivo existente
+    mov al, 0    ; Modo de acceso: lectura
+    lea dx, nombreArchivo  ; Nombre del archivo
+    int 21h      ; Llamar a DOS
+    jc file_not_found  ; Saltar si el archivo no se encuentra
+
+    ; El archivo existe, leer su contenido
+    mov handlerArchivo, ax  ; Guardar manejador de archivo
+    jmp read_file
+
+file_not_found:
+    ; Crear el archivo si no existe
+    mov ah, 3Ch  ; Función 3Ch: Crear archivo
+    xor cx, cx   ; Atributos de archivo: normal
+    lea dx, nombreArchivo  ; Nombre del archivo
+    int 21h      ; Llamar a DOS
+    mov handlerArchivo, ax  ; Guardar manejador de archivo
+    JMP fin
+
+read_file:
+    ; Leer el contenido del archivo en el buffer
+    mov ah, 3Fh  ; Función 3Fh: Leer de archivo
+    mov bx, handlerArchivo  ; Manejador de archivo
+    lea dx, contTxt       ; Buffer para leer el contenido
+    mov cx, sizeof contTxt   ; Tamaño del buffer
+    int 21h      ; Llamar a DOS
+    mov bytesRead, ax  ; Guardar el número de bytes leídos
+
+fin:
+
+ENDM
+
+AbrirArchivo4 MACRO 
+    mov ah, 3Ch  ; Función 3Ch: Crear archivo
+    xor cx, cx   ; Atributos de archivo: normal
+    lea dx, nombreArchivo  ; Nombre del archivo
+    int 21h      ; Llamar a DOS
+    mov handlerArchivo, ax  ; Guardar manejador de archivo
+ENDM
+
+;-------------------------------------------------------------
