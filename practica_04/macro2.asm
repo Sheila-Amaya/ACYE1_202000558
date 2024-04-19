@@ -252,7 +252,7 @@ generateRandomNumber MACRO numVar
 
     mov ah, 0
     int 1Ah
-    and dx, 3  ; dx ahora está en el rango 0-2
+    and dx, 3  ; dx en el rango 0-3
 
     mov numVar, dl
 ENDM

@@ -88,11 +88,11 @@ INCLUDE macro2.asm
     coordenada_limpiar_fila db 00
 
     ; MENSAJES
-    mensaje_ingresar_coor1 db 'coordenadas jugador1: '
-    mensaje_ingresar_coor  db 'coordenadas jugador2: '
+    mensaje_ingresar_coor1 db 'turno jugador1:       '
+    mensaje_ingresar_coor  db 'turno jugador2:       '
     mensaje_celda_invalida db 'La celda ingresada esta ocupada'
-    mensaje_ganado_j1 db 'Ha ganado el jugador 1 jugando con X', '$'
-    mensaje_ganado_j2 db 'Ha ganado el jugador 2 jugando con O', '$'
+    mensaje_ganado_j1 db '  Ha ganado el jugador 1 jugando con X', '$'
+    mensaje_ganado_j2 db '  Ha ganado el jugador 2 jugando con O', '$'
 
     ;ENTRADA DE TEXTO
     bufferEntrada db 255 dup('$')
@@ -255,7 +255,8 @@ INCLUDE macro2.asm
                     db     0C, 0C, 0C, 0C, 0C, 0C, 00, 00
 
     object_map db 09 dup (0)   ;3x3
-    mensaje_ingresar_coor2 db 'IA: '
+    mensaje_ingresar_coor2 db 'turno IA:        '
+
 
 .CODE
     MOV AX, @data
@@ -351,80 +352,61 @@ INCLUDE macro2.asm
             mVideoMode
             CALL PCLEANSCREEN
             CALL PCREARTABLERO
-                inicio_t:
-                    CMP ganador, 01
-                    JE imprimir_g1
-                    CMP turno_jugador, 01
-                    JE ensaje_j1
-                    CMP turno_jugador, 02
-                    JE ensaje_j2
+            inicio_turno_cpu:
+                CMP ganador, 01
+                JE imprimir_ganador_cpu
+                CMP turno_jugador, 01
+                JE mensaje_jugador1_cpu
+                CMP turno_jugador, 02
+                JE mensaje_jugador2_cpu
 
-                ensaje_j1:
-                    mPrintTextIntoVideo 0C, 00, mensaje_ingresar_coor, 16, 000F
-                    JMP continuar_t
+            mensaje_jugador1_cpu:
+                mPrintTextIntoVideo 0C, 00, mensaje_ingresar_coor1, 16, 000F
+                JMP continuar_turno_cpu
 
-                ensaje_j2:
-                    generateRandomNumber numRandom1
-                    asignarF numRandom1
+            mensaje_jugador2_cpu:
+                generateRandomNumber numRandom1
+                asignarF numRandom1
 
-                    ; Introduce un pequeño retraso
-                    mov cx, 0FFFFh
-                    dL1:
-                        loop dL1
+                ; Introduce un pequeño retraso
+                mov cx, 0FFFFh
+                dL1:
+                    loop dL1
 
-                    generateRandomNumber numRandom2
-                    asignarC numRandom2
-                
-                    mPrintTextIntoVideo 0C, 00, mensaje_ingresar_coor2, 16, 000F
-                    mov cx, 0FFFFh
-                    dLoop12:
-                        loop dLoop12
-                    JMP continuar_t2
+                generateRandomNumber numRandom2
+                asignarC numRandom2
 
-                continuar_t2:
-                    CALL PCOORDENADASOBJETOS
-                    CMP turno_jugador, 01
-                    JE tuno_x1
-                    CMP turno_jugador, 02
-                    JE tuno_o1
+                mov cx, 0FFFFh
+                dLoop_1:
+                    loop dLoop_1
+            
+                mPrintTextIntoVideo 0C, 00, mensaje_ingresar_coor2, 16, 000F
 
-                continuar_t:
-                    MOV coordenada_c_fila, 0C
-                    MOV coordenada_c_columna, 15
-                    CALL PMOVERCURSOR
-                    mEnterText
-                    mVerficarCoordenadas
-                    CALL PCOORDENADASOBJETOS
-                    CMP turno_jugador, 01
-                    JE tuno_x1
-                    CMP turno_jugador, 02
-                    JE tuno_o1
+                mov cx, 0FFFFh
+                dLoop12:
+                    loop dLoop12
+                JMP continuar_t2
 
-                tuno_x1:
-                    PUSH AX
-                    PUSH CX
-                    PUSH DX
-                    XOR AX, AX
-                    MOV AL, coordenada_x
-                    XOR CX, CX
-                    MOV CL, coordenada_y
-                    MOV DH, turno_jugador
-                    CALL PPUTFIGURE
-                    POP DX
-                    POP CX
-                    POP AX
-                    CMP is_celda_invalida, 01
-                    JE volver_a_intentar1
+            continuar_t2:
+                CALL PCOORDENADASOBJETOS
+                CMP turno_jugador, 01
+                JE tuno_x_cpu
+                CMP turno_jugador, 02
+                JE tuno_o_cpu               
 
-                    CALL PDRAWX
-                    CALL PCLEANLINECURSOR
-                    MOV coordenada_limpiar_fila, 0Bh
-                    CALL PCLEANANYLINE
-                    CALL PCHECKPLAYERWIN
-                    MOV turno_jugador, 02
-                    JMP inicio_t
+            continuar_turno_cpu:
+                MOV coordenada_c_fila, 0C
+                MOV coordenada_c_columna, 15
+                CALL PMOVERCURSOR
+                mEnterText
+                mVerficarCoordenadas
+                CALL PCOORDENADASOBJETOS
+                CMP turno_jugador, 01
+                JE tuno_x_cpu
+                CMP turno_jugador, 02
+                JE tuno_o_cpu
 
-            tuno_o1:
+            tuno_x_cpu:
                 PUSH AX
                 PUSH CX
                 PUSH DX
@@ -438,7 +420,31 @@ INCLUDE macro2.asm
                 POP CX
                 POP AX
                 CMP is_celda_invalida, 01
-                JE volver_a_intentar1
+                JE volver_a_intentar_cpu
+
+                CALL PDRAWX
+                CALL PCLEANLINECURSOR
+                MOV coordenada_limpiar_fila, 0Bh
+                CALL PCLEANANYLINE
+                CALL PCHECKPLAYERWIN
+                MOV turno_jugador, 02
+                JMP inicio_turno_cpu
+
+            tuno_o_cpu:
+                PUSH AX
+                PUSH CX
+                PUSH DX
+                XOR AX, AX
+                MOV AL, coordenada_x
+                XOR CX, CX
+                MOV CL, coordenada_y
+                MOV DH, turno_jugador
+                CALL PPUTFIGURE
+                POP DX
+                POP CX
+                POP AX
+                CMP is_celda_invalida, 01
+                JE volver_a_intentar_cpu
 
                 CALL PDRAWO
                 CALL PCLEANLINECURSOR
@@ -446,30 +452,33 @@ INCLUDE macro2.asm
                 CALL PCLEANANYLINE
                 CALL PCHECKPLAYERWIN
                 MOV turno_jugador, 01
-                JMP inicio_t
+                JMP inicio_turno_cpu
 
-            volver_a_intentar1:
+            volver_a_intentar_cpu:
                 CALL PCLEANLINECURSOR
                 MOV is_celda_invalida, 00
-                JMP inicio_t
-            imprimir_g1:
+                JMP inicio_turno_cpu
+            imprimir_ganador_cpu:
                 CMP turno_jugador, 01
-                JE ganador_j21
+                JE ganador_j2_cpu
                 CMP turno_jugador, 02
-                JE ganador_j1
-            ganador_j21:
+                JE ganador_j1_cpu
+
+            ganador_j2_cpu:
                 mTextMode
                 mPrint mensaje_ganado_j2
-                JMP finish1
-            ganador_j11:
+                JMP finish
+
+            ganador_j1_cpu:
                 mTextMode
                 mPrint mensaje_ganado_j1
-                JMP finish1
+                JMP finish_cpu
 
-        finish1:
+        finish_cpu:
             pauseUntilEnter
-            mRetControl
-        
+            clearConsole
+            JMP subMenu
+
         JMP SubMenu ;---------------------------------------------  1 vs cpu
 
 
@@ -560,7 +569,7 @@ INCLUDE macro2.asm
                 CMP turno_jugador, 01
                 JE ganador_j2
                 CMP turno_jugador, 02
-                JE ganador_j11
+                JE ganador_j1
             ganador_j2:
                 mTextMode
                 mPrint mensaje_ganado_j2
