@@ -5,12 +5,6 @@ clearConsole MACRO
     INT 10H
 ENDM
 
-printCadena MACRO registrop 
-    MOV AH, 09h 
-    LEA DX, registrop
-    INT 21h
-ENDM
-
 
 getOp MACRO registrOp
     MOV AH, 01h
@@ -32,16 +26,39 @@ PrintColor MACRO rPrint, color
     INT 21h         
 ENDM
 
-;---------------------------------------------- modo texto y video
-ModoVideo MACRO
-    MOV AL, 13h
-    MOV AH, 00h
-    INT 10h    
+printCadena MACRO registrop 
+    MOV AH, 09h 
+    LEA DX, registrop
+    INT 21h
 ENDM
 
-ModoTexto MACRO
-    MOV AL, 03h
-    MOV AH, 00h
-    INT 10h
-ENDM
 
+;---------------------------------------------- guardar player
+obtenerCadena MACRO regBuffer, maxLength
+    LOCAL leer_caracter_bucle, fin_lectura
+    ; Inicializar índice y contador de longitud
+    xor si, si
+
+    ; Bucle para leer caracteres
+    leer_caracter_bucle:
+        ; Leer un carácter sin eco
+        mov ah, 01h
+        int 21h
+
+        ; Verificar si es un enter (carácter ASCII 13)
+        cmp al, 13
+        je fin_lectura
+
+        ; Almacenar el carácter en el buffer
+        mov [regBuffer + si], al
+
+        ; Incrementar índice y contador de longitud
+        inc si
+        cmp si, maxLength
+        jge fin_lectura                  ; Si hemos alcanzado la longitud máxima, terminamos la lectura
+
+        jmp leer_caracter_bucle            ; Si no, volvemos a leer otro carácter
+
+    fin_lectura:
+
+ENDM

@@ -1,8 +1,3 @@
-mSetDataOnDs macro
-    mov DX, @data
-    mov DS, DX
-    MOV ES, DX
-endm
 
 mCleanScreen macro
     PUSH AX
@@ -105,7 +100,6 @@ mPrintTextIntoVideo MACRO row, column, text, chars, color
     CALL PMOVESTOVIDEOMODE
     mPopRegisters
 ENDM
-
 
 
 mPushRegisters macro
