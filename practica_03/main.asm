@@ -215,8 +215,8 @@ INCLUDE macros.asm
             CMP op, 13
             JE Salir
 
-            ;EscribirArchivo contenidoArchivo, handlerArchivo
-            ;EscribirArchivo2 contenidoArchivo2, handlerArchivo2
+            EscribirArchivo contenidoArchivo, handlerArchivo
+            EscribirArchivo2 contenidoArchivo2, handlerArchivo2
             
             EscribirArchivo4 contenidoArchivo2
             EscribirArchivo4 contenidoArchivo3

@@ -1,6 +1,6 @@
 INCLUDE macros.asm
 INCLUDE macro2.asm
-
+INCLUDE macrosA.asm
 ;---------------------------------------------------------
 .MODEL small
 .RADIX 16
@@ -8,6 +8,16 @@ INCLUDE macro2.asm
 .STACK 64h
 
 .DATA 
+    filehandle dw ?
+    bytesRead dw ?
+    dataTXT db 1024 dup("$")
+    segundos db 2 dup("$")
+    Barra db "|", "$"
+    horaDB db 012h dup("$")
+    nombreDB db "reporte.txt", 0
+    espacio db " ", "$"
+    espacio11 db "            ", "$"
+
     enter_continuar       db   '    Presionar ENTER para continuar ','$'
     saltoLinea db 0A, 0D, "$"
     ; menu
@@ -61,9 +71,9 @@ INCLUDE macro2.asm
     info13 db "    202000558", 0A, 0D, "$"
     
     ;----------------------------------------------------------
-    nombreJugador3 db "IA", "$"
-    nombreJugador1 db 8 dup(32)
-    nombreJugador2 db 8 dup(32)
+    nombreJugador3 db " IA ", "$"
+    nombreJugador1 db 5 dup(32)
+    nombreJugador2 db 5 dup(32)
 
     ;---------------------------------------------------------- totito
     ;CONTROL DEL TURNO DEL JUGADOR
@@ -101,6 +111,59 @@ INCLUDE macro2.asm
     bufferEntrada db 255 dup('$')
     numRandom1 db 00
     numRandom2 db 00
+;--------------------------------------------
+    handler             dw ?
+    filename            db "Input1.txt", 0
+    salto               db  0Ah, 0Dh, "$"
+    errorCode           db ?
+    errorOpenFile       db " >> Ocurrio Un Error Al Abrir El Archivo - ERRCODE: ", "$"
+    errorCloseFile      db " >> Ocurrio Un Error Al Cerrar El Archivo - ERRCODE: ", "$"
+    errorReadFile       db " >> Ocurrio Un Error Al Leer El Archivo - ERRCODE: ", "$"
+    errorSizeFile       db " >> Ocurrio Un Error Obteniendo El Size Del Archivo - ERRCODE: ", "$"
+    exitOpenFileMsg     db " >> El Archivo Se Abrio Correctamente", "$"
+    exitCloseFileMsg    db " >> El Archivo Se Cerro Correctamente", "$"
+    exitSizeFileMsg     db " >> Se Obtuvo La Longitud Correctamente", "$"
+    bufferTemporal      db 80  dup("$")
+    bufferImagen1       db 900 dup("$")
+    bufferImagen2       db 900 dup("$")
+    bufferImagen3       db 900 dup("$")
+    bufferImagen4       db 900 dup("$")
+    bufferImagen5       db 900 dup("$")
+    bufferImagen6       db 900 dup("$")
+    bufferImagen7       db 900 dup("$")
+    bufferImagen8       db 900 dup("$")
+    charsPerRow1        dw ?
+    cantRows1           dw ?
+    charsPerRow2        dw ?
+    cantRows2           dw ?
+    charsPerRow3        dw ?
+    cantRows3           dw ?
+    charsPerRow4        dw ?
+    cantRows4           dw ?
+    charsPerRow5        dw ?
+    cantRows5           dw ?
+    charsPerRow6        dw ?
+    cantRows6           dw ?
+    charsPerRow7        dw ?
+    cantRows7           dw ?
+    charsPerRow8        dw ?
+    cantRows8           dw ?
+    saltoCadena         dw ?
+    extensionArchivo    dw 0
+    posApuntador        dw 0
+    filaActual          db 0
+    fila                db 0
+    columna             db 5
+    paginaActual        db 0
+
+    ;----------------------------------------------------------
+    R_1 db "   --------------------------------------------------", 0A, 0D, "$"
+    R_2 db "  | Fecha  | Hora   | J1 | J2 | Resultados | x  | o  |", 0A, 0D, "$"
+    R_3 db "  |--------|--------|----|----|------------|----|----|", 0A, 0D, "$"
+    R_4 db "  |--------------------------------------------------|", 0A, 0D, "$"      
+    R_5 db "  |               NO HAY REGISTROS                   |", 0A, 0D, "$"
+
+    ;-------------------------------------------------------------
 
     ;PAREDES TOTITO
     empty_block db     00, 00, 00, 00, 00, 00, 00, 00
@@ -264,6 +327,7 @@ INCLUDE macro2.asm
 .CODE
     MOV AX, @data
     MOV DS, AX
+    MOV ES, AX
 
     Main  PROC                                    ; metodo Inicio del programa
     clearConsole
@@ -272,21 +336,21 @@ INCLUDE macro2.asm
 
     ;---------------------------- Imprime el menu
     printCadena saltoLinea
-    PrintColor messageMenu  , 0Fh
-    PrintColor messageMenu1 , 0Fh
-    PrintColor messageMenu2 , 0Fh
-    PrintColor messageMenu3 , 0Fh
-    PrintColor messageMenu4 , 0Fh
-    PrintColor messageMenu5 , 0Fh
-    PrintColor messageMenu6 , 0Fh
-    PrintColor messageMenu7 , 0Fh
-    PrintColor messageMenu8 , 0Fh
-    PrintColor messageMenu9 , 0Fh
-    PrintColor messageMenu10 , 0Fh
-    PrintColor messageMenu11 , 0Fh
+    PrintColor messageMenu  , 09h
+    PrintColor messageMenu1 , 09h
+    PrintColor messageMenu2 , 09h
+    PrintColor messageMenu3 , 09h
+    PrintColor messageMenu4 , 09h
+    PrintColor messageMenu5 , 09h
+    PrintColor messageMenu6 , 09h
+    PrintColor messageMenu7 , 09h
+    PrintColor messageMenu8 , 09h
+    PrintColor messageMenu9 , 09h
+    PrintColor messageMenu10, 09h
+    PrintColor messageMenu11, 09h
     printCadena saltoLinea 
-    PrintColor messageMenu12 , 0Fh
-    PrintColor messageMenu13 , 0Fh
+    PrintColor messageMenu12, 09h
+    PrintColor messageMenu13, 09h
     ;---------------------------------------------
 
     getOp op
@@ -355,10 +419,10 @@ INCLUDE macro2.asm
             mTextMode
             printCadena saltoLinea
             printCadena mensaje_nombre_jugador1
-            obtenerCadena nombreJugador1, 6
+            obtenerCadena nombreJugador1, 5
 
             printCadena enter_continuar
-            pauseUntilEnter
+            ;pauseUntilEnter
             JMP iniciar_partida_cpu
 
             iniciar_partida_cpu:
@@ -410,6 +474,7 @@ INCLUDE macro2.asm
                     JE tuno_x_cpu
                     CMP turno_jugador, 02
                     JE tuno_o_cpu
+
                 tuno_x_cpu:
                     PUSH AX
                     PUSH CX
@@ -432,6 +497,7 @@ INCLUDE macro2.asm
                     CALL PCHECKPLAYERWIN
                     MOV turno_jugador, 02
                     JMP inicio_turno_cpu
+
                 tuno_o_cpu:
                     PUSH AX
                     PUSH CX
@@ -459,11 +525,38 @@ INCLUDE macro2.asm
                     MOV is_celda_invalida, 00
                     JMP inicio_turno_cpu
                 imprimir_ganador_cpu:
+
+                    AbrirArchivo
+                    AbrirArchivo3
+                    Addtextoanterior
+                    EscribirArchivo espacio
+                    EscribirArchivo espacio
+                    EscribirArchivo Barra
+                    ImpFechaDB horaDB
+                    EscribirArchivo Barra
+                    EscribirArchivo nombreJugador1
+                    EscribirArchivo Barra
+                    EscribirArchivo nombreJugador3
+                    EscribirArchivo Barra
+                    EscribirArchivo espacio11
+                    EscribirArchivo Barra
+
                     CMP turno_jugador, 01
                     JE ganador_j2_cpu
                     CMP turno_jugador, 02
                     JE ganador_j1_cpu
+
                 ganador_j2_cpu:
+
+                EscribirArchivo nombreJugador3
+                EscribirArchivo Barra
+                EscribirArchivo nombreJugador1
+                EscribirArchivo Barra
+                EscribirArchivo espacio
+                EscribirArchivo espacio
+                EscribirArchivo Salto
+                CerrarArchivo
+
                     mTextMode
                     mPrint saltoLinea
                     PrintColor mensaje_ganado_j2, 01h
@@ -471,6 +564,16 @@ INCLUDE macro2.asm
                     JMP SubMenu
                     
                 ganador_j1_cpu:
+
+                EscribirArchivo nombreJugador1
+                EscribirArchivo Barra
+                EscribirArchivo nombreJugador3
+                EscribirArchivo Barra
+                EscribirArchivo espacio
+                EscribirArchivo espacio
+                EscribirArchivo Salto
+                CerrarArchivo
+
                     mTextMode
                     mPrint saltoLinea
                     PrintColor mensaje_ganado_j1, 0Bh
@@ -484,16 +587,15 @@ INCLUDE macro2.asm
                 mTextMode
                 printCadena saltoLinea
                 printCadena mensaje_nombre_jugador1
-                obtenerCadena nombreJugador1, 6
+                obtenerCadena nombreJugador1, 5
 
-                pauseUntilEnter
+                ;pauseUntilEnter
 
-                printCadena saltoLinea
                 printCadena mensaje_nombre_jugador2
-                obtenerCadena nombreJugador2, 6
+                obtenerCadena nombreJugador2, 5
 
-                printCadena enter_continuar
-                pauseUntilEnter
+                ;printCadena enter_continuar
+                ;pauseUntilEnter
 
                 JMP iniciar_partida
 
@@ -581,17 +683,54 @@ INCLUDE macro2.asm
                         MOV is_celda_invalida, 00
                         JMP inicio_turno
                     imprimir_ganador:
+
+                        AbrirArchivo
+                        AbrirArchivo3
+                        Addtextoanterior
+                        EscribirArchivo espacio
+                        EscribirArchivo espacio
+                        EscribirArchivo Barra
+                        ImpFechaDB horaDB
+                        EscribirArchivo Barra
+                        EscribirArchivo nombreJugador1
+                        EscribirArchivo Barra
+                        EscribirArchivo nombreJugador2
+                        EscribirArchivo Barra
+                        EscribirArchivo espacio11
+                        EscribirArchivo Barra
+
                         CMP turno_jugador, 01
                         JE ganador_j2
                         CMP turno_jugador, 02
                         JE ganador_j1
                     ganador_j2:
+
+                        EscribirArchivo nombreJugador2
+                        EscribirArchivo Barra
+                        EscribirArchivo nombreJugador1
+                        EscribirArchivo Barra
+                        EscribirArchivo espacio
+                        EscribirArchivo espacio
+                        EscribirArchivo Salto
+                        CerrarArchivo
+
                         mTextMode
                         mPrint saltoLinea
                         PrintColor mensaje_ganado_j2, 0Ah
                         mPrint saltoLinea
                         JMP SubMenu
+
                     ganador_j1:
+
+                        EscribirArchivo nombreJugador1
+                        EscribirArchivo Barra
+                        EscribirArchivo nombreJugador2
+                        EscribirArchivo Barra
+                        EscribirArchivo espacio
+                        EscribirArchivo espacio
+                        EscribirArchivo Salto
+                        CerrarArchivo
+
                         mTextMode
                         mPrint saltoLinea
                         PrintColor mensaje_ganado_j1, 0Ah
@@ -1115,13 +1254,114 @@ INCLUDE macro2.asm
 
             JMP SubMenu ;--------------------------------------------- fin de uno vs uno
 
-        opcion3: ; reportes
+        opcion3: ; ---reportes
+            PrintColor R_1, 0Ch  ; Rojo brillante
+            PrintColor R_2, 0Ch
+            PrintColor R_3, 0Ch
+            AbrirArchivo2
+            PrintColor dataTXT, 0Ch
+            PrintColor R_4, 0Ch
+            
         JMP SubMenu
 
-    animacion: ;------------------------------------------- Animaciones
+    animacion: ;------------------------------------------- Animaciones menu principal
+        OpenFile handler
+        GetSizeFile handler
+        
+        MOV AH, 10h
+        INT 16h
+
+        MOV AX, 03h
+        INT 10h
+
+        CicloAnimaciones:
+            MOV fila, 0
+            MOV filaActual, 0
+            MOV columna, 0
+            
+            CMP paginaActual, 0 ; * Salto A Pagina 1
+            JZ EtAnimacion1Aux
+
+            CMP paginaActual, 1 ; * Salto A Pagina 2
+            JZ EtAnimacion2Aux
+
+            CMP paginaActual, 2 ; * Salto A Pagina 3
+            JZ EtAnimacion3Aux
+
+            CMP paginaActual, 3 ; * Salto A Pagina 4
+            JZ EtAnimacion4Aux
+
+            CMP paginaActual, 4 ; * Salto A Pagina 5
+            JZ EtAnimacion5Aux
+
+            CMP paginaActual, 5; * Salto A Pagina 5
+            JZ EtAnimacion6Aux
+
+            CMP paginaActual, 6 ; * Salto A Pagina 5
+            JZ EtAnimacion7Aux
+
+            CMP paginaActual, 7 ; * Salto A Pagina 5
+            JZ EtAnimacion8Aux
+
+            JMP Salir   ; ! -> Si "paginaActual" Sobrepasa A Los Valores Definidos Que Salga Del Ciclo
+
+            ; ? ETIQUETAS AUXILIARES PARA EVITAR ERRORES CON LA LONGITUD DE SALTOS
+            EtAnimacion1Aux:    
+                JMP EtAnimacion1
+            EtAnimacion2Aux:
+                JMP EtAnimacion2
+            EtAnimacion3Aux:
+                JMP EtAnimacion3
+            EtAnimacion4Aux:
+                JMP EtAnimacion4
+            EtAnimacion5Aux:
+                JMP EtAnimacion5
+            EtAnimacion6Aux:
+                JMP EtAnimacion6
+            EtAnimacion7Aux:
+                JMP EtAnimacion7
+            EtAnimacion8Aux:
+                JMP EtAnimacion8
+
+            ; * Invocacion Animacion 1
+            EtAnimacion1:
+                Animacion1 charsPerRow1, cantRows1, bufferImagen1
+                JMP CicloAnimaciones
+
+            ; * Invocacion Animacion 2
+            EtAnimacion2:
+                Animacion2 charsPerRow2, cantRows2, bufferImagen2
+                JMP CicloAnimaciones
+
+            ; * Invocacion Animacion 3
+            EtAnimacion3:
+                Animacion3 charsPerRow3, cantRows3, bufferImagen3
+                JMP CicloAnimaciones
+
+            ; * Invocacion Animacion 4
+            EtAnimacion4:
+                Animacion4 charsPerRow4, cantRows4, bufferImagen4
+                JMP CicloAnimaciones
+
+            EtAnimacion5:
+                Animacion1 charsPerRow5, cantRows5, bufferImagen5
+                JMP CicloAnimaciones
+
+                EtAnimacion6:
+                Animacion1 charsPerRow6, cantRows6, bufferImagen6
+                JMP CicloAnimaciones
+
+                EtAnimacion7:
+                Animacion1 charsPerRow7, cantRows7, bufferImagen7
+                JMP CicloAnimaciones
+                
+                EtAnimacion8:
+                Animacion1 charsPerRow8, cantRows8, bufferImagen8
+                JMP CicloAnimaciones
+
     JMP Menu   ;--------------------------------------------- fin de animaciones
 
-    informacion: ;--------------------------------------- informacion
+    informacion: ;--------------------------------------- informacion menu principal
         clearConsole
         printCadena saltoLinea
         PrintColor info1, 03h

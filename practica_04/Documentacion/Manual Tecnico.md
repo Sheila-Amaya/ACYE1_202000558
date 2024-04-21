@@ -20,5 +20,5 @@ El sistema consta de dos componentes principales:
 <img src="./imagenes/code2.png" width="400">
 
 
-- `macros.asm`: Las macros contenidas en este archivo se utilizan para realizar operacione comunes en el juego, estas operaciones incluyen lo que es asignar piezas en una ubicacion determinada del tablero y validar que jugador a ganado o perdido con y la pieza ganadora.
+- `macros.asm`: Las macros contenidas en este archivo se utilizan para realizar operacione comunes en el juego, estas operaciones incluyen lo que es asignar piezas en una ubicacion determinada del tablero y validar que jugador a ganado o perdido con la pieza ganadora.
 <img src="./imagenes/code3.png" width="400">

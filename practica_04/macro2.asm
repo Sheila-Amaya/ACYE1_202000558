@@ -260,3 +260,6 @@ asignarF MACRO numVar
     mov dl, numVar
     mov [coordenada_y], dl
 ENDM
+
+;-----------------------------
+

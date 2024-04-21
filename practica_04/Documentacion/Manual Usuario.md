@@ -28,23 +28,19 @@
 1. *Al iniciar el programa muestra un menu de inicio.*
 ![IMAGEN1](./imagenes/1.png)
 
-2. *.*
+2. *En opcion uno redirecciona a un subMenu.*
 ![IMAGEN1](./imagenes/2.png)
 
-3. *.*
+3. *1 VS CPU pide el nombre de un solo jugador para competir con la IA.*
 ![IMAGEN1](./imagenes/3.png)
 
-4. *.*
+4. *genera el tablero y pide cordenadas para el jugador1.*
 ![IMAGEN1](./imagenes/4.png)
 
-5. *.*
+5. *Luego ingresa la cordenada y la dibuja en la posicion especificada, luego de que la IA genere su movimineto vuelve a pedir el turno del jugador1*
 ![IMAGEN1](./imagenes/5.png)
-
-6. *.*
 ![IMAGEN1](./imagenes/6.png)
 
-7. *.*
-![IMAGEN1](./imagenes/7.png)
 
-8. *.*
+8. *Al finalizar la partida indica si gano jugador1, jugador2, IA o empate.*
 ![IMAGEN1](./imagenes/8.png)
