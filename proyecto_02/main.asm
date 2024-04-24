@@ -70,8 +70,6 @@ INCLUDE macro.asm
         msj13 db "desde info", "$"
         msj db " >> Comando no reconocido", "$"
 
-
-
 .CODE
     MOV AX, @data
     MOV DS, AX
@@ -227,15 +225,7 @@ INCLUDE macro.asm
 
         info:
             limpiarCadena inputString
-
-            printCadena saltoLinea
-            PrintColor info0, 9
-            PrintColor info1, 9
-            PrintColor info2, 9
-            PrintColor info3, 9
-            PrintColor info4, 9
-            PrintColor info5, 9
-
+            mostrarInfo                 ; muestra la info
             JMP Menu
 
         no_es_info:

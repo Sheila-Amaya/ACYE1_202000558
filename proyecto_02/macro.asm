@@ -100,3 +100,12 @@ limpiarCadena MACRO inputString
     end_limpiar:
 ENDM
 
+mostrarInfo MACRO
+        printCadena saltoLinea
+        PrintColor info0, 9
+        PrintColor info1, 9
+        PrintColor info2, 9
+        PrintColor info3, 9
+        PrintColor info4, 9
+        PrintColor info5, 9
+ENDM
