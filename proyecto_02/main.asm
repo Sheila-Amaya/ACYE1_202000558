@@ -1,31 +1,30 @@
 INCLUDE macro.asm
+INCLUDE macro2.asm
 ;---------------------------------------------------------
 .MODEL small
-
-.STACK 64h
-
+.STACK 100h
 .DATA
-        l1 db  "                                .                          ",10,13, "$"                       
-        l2 db  "                              .###                         ",10,13, "$"                       
-        l3 db  "                       ####  ##  ##  ####                  ",10,13, "$"                       
-        l4 db  "                        # #  #    #  # #                   ",10,13, "$"                       
-        l5 db  "                        #  ##########+ #                   ",10,13, "$"                       
-        l6 db  "                  ####.  #-          +#   ####             ",10,13, "$"                       
-        l7 db  "                    #     #+         #     #               ",10,13, "$"                       
-        l8 db  "                     ###### -####### ######                ",10,13, "$"                       
-        l9 db  "                     #  #      ##      #  #                ",10,13, "$"                       
-        l10 db "                   #####+##- #    # .########              ",10,13, "$"                       
-        l11 db "                    ###- #####    ##### .###-              ",10,13, "$"                       
-        l12 db "                        #    # ## #    #                   ",10,13, "$"                       
-        l13 db "                        #   ##    ##   #                   ",10,13, "$"                       
-        l14 db "                       ###    #  #    ###                  ",10,13, "$"                       
-        l15 db "                               ##                          ",10,13, "$"                       
-        l16 db "                                                           ",10,13, "$"                       
-        l17 db "                                                           ",10,13, "$"                       
-        l18 db "       ##  #  ## #####  ##   ##### #####   ##    ##   ##   ",10,13, "$"                       
-        l19 db "       .# ### ## #   ## ##   ##    ## ##  # -#   #.# ###   ",10,13, "$"                       
-        l20 db "        ### ###  #.  ## #-   ##    ## #  ###### -# ### ##  ",10,13, "$"                       
-        l21 db "        ##   ##   ###   #### ##    ## ##.#    ###   #  ##  ",10,13, "$"
+        l1 db  "                                       .                           ",10,13, "$"                       
+        l2 db  "                                     .###                          ",10,13, "$"                       
+        l3 db  "                               ####  ##  ##  ####                  ",10,13, "$"                       
+        l4 db  "                                # #  #    #  # #                   ",10,13, "$"                       
+        l5 db  "                                #  ##########+ #                   ",10,13, "$"                       
+        l6 db  "                          ####.  #-          +#   ####             ",10,13, "$"                       
+        l7 db  "                            #     #+         #     #               ",10,13, "$"                       
+        l8 db  "                             ###### -####### ######                ",10,13, "$"                       
+        l9 db  "                             #  #      ##      #  #                ",10,13, "$"                       
+        l10 db "                           #####+##- #    # .########              ",10,13, "$"                       
+        l11 db "                            ###- #####    ##### .###-              ",10,13, "$"                       
+        l12 db "                                #    # ## #    #                   ",10,13, "$"                       
+        l13 db "                                #   ##    ##   #                   ",10,13, "$"                       
+        l14 db "                               ###    #  #    ###                  ",10,13, "$"                       
+        l15 db "                                       ##                          ",10,13, "$"                       
+        l16 db "                                                                   ",10,13, "$"                       
+        l17 db "                                                                   ",10,13, "$"                       
+        l18 db "               ##  #  ## #####  ##   ##### #####   ##    ##   ##   ",10,13, "$"                       
+        l19 db "               .# ### ## #   ## ##   ##    ## ##  # -#   #.# ###   ",10,13, "$"                       
+        l20 db "                ### ###  #.  ## #    ##=   ## #  ###### -# ### ##  ",10,13, "$"                       
+        l21 db "                ##   ##   ###   #### ##    ## ##.#    ###   #  ##  ",10,13, "$"
 
         info0 db  "    ARQUITECTURA DE COMPUTADORES 1",10,13, "$"
         info1 db "    Y ENSAMBLADORES 1 - A",10,13, "$"
@@ -36,9 +35,61 @@ INCLUDE macro.asm
 
         enter_continuar  db  '       Presionar ENTER para continuar ','$'
         saltoLinea db 10, 13, "$"
-        msj0 db " >> Ingrese un comando: ", "$"
+        msj0 db " >> ", "$"
 
+        ;------------------ op 
+        handlerFile         dw ?
+        filename            db 30 dup(32)
+        bufferDatos         db 300 dup (?)
+        errorCode           db ?
+        errorOpenFile       db "    Ocurrio Un Error Al Abrir El Archivo - ERRCODE: ", "$"
+        errorCloseFile      db "    Ocurrio Un Error Al Cerrar El Archivo - ERRCODE: ", "$"
+        errorReadFile       db "    Ocurrio Un Error Al Leer El CSV - ERRCODE: ", "$"
+        errorSizeFile       db "    Ocurrio Un Error Obteniendo El Size Del Archivo - ERRCODE: ", "$"
+        exitOpenFileMsg     db "    El Archivo Se Abrio Correctamente", "$"
+        exitCloseFileMsg    db "    El Archivo Se Cerro Correctamente", "$"
+        exitSizeFileMsg     db "    Se Obtuvo La Longitud Correctamente", "$"
+        msgToRequestFile    db "  > ", "$"
+        msgPromedio         db "    El Promedio De Los Datos Es: ", "$"
+        msgMaximo           db "    El Valor Maximo De Los Datos Es: ", "$"
+        msgMinimo           db "    El Valor Minimo De Los Datos Es: ", "$"
+        msgMediana          db "    El Valor De la Mediana De Los Datos Es: ", "$"
+        msgContadorDatos    db "    El Total De Datos Utilizados Ha Sido De: ", "$"
+        msgModa1            db "    La Moda De Los Datos Es: ", "$"
+        msgModa2            db "    Con Una Frecuencia De: ", "$"
+        msgEncabezadoTabla  db "    |  V  |  Fr  |", "$"
+        msgEncabezadoTabla2 db "    +------------+", "$"
+        salto               db 10, 13, "$"
+        formatoTabla        db "|", "$"   
+        espacios            db 32, 32, "$"
+        numCSV              db 3 dup(?)
+        cadenaResult        db 6 dup("$")
+        tablaFrecuencias    db 100 dup(?)
+        numEntradas         db 1
+        indexDatos          dw 0
+        extensionArchivo    dw 0
+        posApuntador        dw 0
+        numDatos            dw 0
+        base                dw 10000
+        entero              dw ?
+        decimal             dw ?
+        cantDecimal         db 0
+
+
+        nombreDB db "202000558.txt", 0
+        filehandle dw ?
+        bytesRead dw ?
+        dataTXT db 1024 dup("$")
+        segundos db 2 dup("$")
+        Barra db "|", "$"
+        horaDB db 18 dup("$")
+        espacio db "    ", "$"
+        espacio11 db "            ", "$"
+
+
+        ;------------------ comandos
         inputString db 16 dup(0)
+        frecString          db 'frec', 0
         promedioString      db 'prom', 0
         medianaString       db 'med', 0
         modaString          db 'moda', 0
@@ -55,20 +106,22 @@ INCLUDE macro.asm
         salirString         db 'salir', 0
 
         
-        msj1 db "desde prom", "$"
-        msj2 db "desde mediana", "$"
-        msj3 db "desde moda", "$"
-        msj4 db "desde maximo", "$"
-        msj5 db "desde minimo", "$"
-        msj6 db "desde contador", "$"
-        msj7 db "desde barra_a", "$"
-        msj8 db "desde barra_d", "$"
-        msj9 db "desde grafico_l", "$"
-        msj10 db "desde abrir_archivo", "$"
-        msj11 db "desde limpiar", "$"
-        msj12 db "desde reporte", "$"
-        msj13 db "desde info", "$"
-        msj db " >> Comando no reconocido", "$"
+        msj1 db " Promedio     : ", "$"
+        msj2 db " Mediana      : ", "$"
+        msj3 db " Moda         : ", "$"
+        msj4 db " Frecuencia   : ", "$"
+        msj5 db " Maximo       : ", "$"
+        msj6 db " Minimo       : ", "$"
+        msj7 db " Contador      : ", "$"
+
+        msj8 db "desde barra_a", "$"
+        msj9 db "desde barra_d", "$"
+        msj10 db "desde grafico_l", "$"
+        msj11 db "desde abrir_archivo", "$"
+        msj12 db "desde limpiar", "$"
+        msj13 db "desde reporte", "$"
+        msj14 db "desde info", "$"
+        msj db " >> Err", "$"
 
 .CODE
     MOV AX, @data
@@ -108,114 +161,155 @@ INCLUDE macro.asm
     Menu:
         printCadena saltoLinea
 
-        printCadena msj0
+        printCadena msj0    ; >>
         limpiarCadena inputString
         obtenerCadena inputString, 16
         
-        compareStrings inputString, promedioString, promedio
+        compareStrings inputString, promedioString, promedio1
         JMP no_es_promedio
 
-        promedio:
-            PrintColor msj1, 2 ; verde
+        promedio1:                          ;---------------------- promedio
+            Promedio
+            MOV base, 10000
+            
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                       ; ------------------- fin promedio
         
         no_es_promedio:
-            compareStrings inputString, medianaString, mediana
+            compareStrings inputString, medianaString, mediana1
             JMP no_es_mediana
 
-        mediana:
-            PrintColor msj2, 3 ; azul
+        mediana1:                          ;---------------------- mediana
+
+            Mediana
+            MOV base, 10000
+
             limpiarCadena inputString
             JMP Menu
         
         no_es_mediana:
-            compareStrings inputString, modaString, moda
+            compareStrings inputString, modaString, moda1
             JMP no_es_moda
 
-        moda:
-            PrintColor msj3, 1 ; rojo
+        moda1:                             ;---------------------- moda
+            Moda
+            MOV base, 10000
+            
+            CerrarArchivo  ; reporte
             limpiarCadena inputString
             JMP Menu
 
         no_es_moda:
-            compareStrings inputString, maximoString, maximo
+            compareStrings inputString, maximoString, maximo1
             JMP no_es_maximo
 
-        maximo:
-            PrintColor msj4, 5 ; morado
+        maximo1:                           ;---------------------- maximo
+
+            Maximo
+            MOV base, 10000
+
             limpiarCadena inputString
             JMP Menu
 
         no_es_maximo:
-            compareStrings inputString, minimoString, minimo
+            compareStrings inputString, minimoString, minimo1
             JMP no_es_minimo
 
-        minimo:
-            PrintColor msj5, 8 ; gris
+        minimo1:                          ;---------------------- minimo
+
+            Minimo
+            MOV base, 10000
+
             limpiarCadena inputString
             JMP Menu
 
         no_es_minimo:
-            compareStrings inputString, contadorString, contador
+            compareStrings inputString, contadorString, contador1
             JMP no_es_contador
 
-        contador:
-            PrintColor msj6, 9 ; azul claro
+        contador1:                       ;---------------------- contador
+
+            ContadorDatos
+            MOV base, 10000
+
             limpiarCadena inputString
             JMP Menu
 
         no_es_contador:
-            compareStrings inputString, barra_aString, barra_a
+            compareStrings inputString, frecString, Frec1
+            JMP no_es_frec
+
+        Frec1:                          ;---------------------- frecuencia
+            BuildTablaFrecuencias
+            OrderFrecuencies
+            MOV base, 10000
+            PrintTablaFrecuencias
+            printCadena msgEncabezadoTabla2
+
+            limpiarCadena inputString
+            JMP Menu
+
+        no_es_frec:
+            compareStrings inputString, barra_aString, barra_a1
             JMP no_es_barra_a
 
-        barra_a:
+        barra_a1:                       ;---------------------- barra_ascendente
             PrintColor msj7, 1
             limpiarCadena inputString 
             JMP Menu
 
-        no_es_barra_a:
-            compareStrings inputString, barra_dString, barra_d
+        no_es_barra_a:  
+            compareStrings inputString, barra_dString, barra_d1
             JMP no_es_barra_d
 
-        barra_d:
+        barra_d1:                       ;---------------------- barra_descendente
             PrintColor msj8, 11 ; verde claro
             limpiarCadena inputString
             JMP Menu
 
         no_es_barra_d:
-            compareStrings inputString, grafico_lString, grafico_l
+            compareStrings inputString, grafico_lString, grafico_l1
             JMP no_es_grafico_l
 
-        grafico_l:
+        grafico_l1:                     ;---------------------- grafico_lineal
             PrintColor msj9, 12 ; verde claro
             limpiarCadena inputString
             JMP Menu
 
         no_es_grafico_l:
-            compareStrings inputString, abrir_archivoString, abrir_archivo
+            compareStrings inputString, abrir_archivoString, abrir_archivo1
             JMP no_es_abrir_archivo
 
-        abrir_archivo:
-            PrintColor msj10, 6 ; rojo
+        abrir_archivo1:                 ;-------------------- abrir archivo
+
+            PrintColor msgToRequestFile, 7 
+            PedirCadena filename
+
+            OpenFile
+            GetSizeFile handlerFile
+            ReadCSV handlerFile, numCSV
+            CloseFile handlerFile
+
+            OrderData
+
             limpiarCadena inputString
             JMP Menu
 
         no_es_abrir_archivo:
-            compareStrings inputString, limpiarString, limpiar
+            compareStrings inputString, limpiarString, limpiar1
             JMP no_es_limpiar
 
-        limpiar:
-            PrintColor msj11, 8 ; rojo
+        limpiar1:                       ;---------------------- limpiar consola
+            clearConsole
             limpiarCadena inputString
             JMP Menu
 
         no_es_limpiar:
-            compareStrings inputString, reporteString, reporte
+            compareStrings inputString, reporteString, reporte1
             JMP no_es_reporte
 
-        reporte:
-            PrintColor msj12, 9 ; rojo
+        reporte1:                       ;---------------------- reporte
+            
             limpiarCadena inputString
             JMP Menu
 
@@ -223,7 +317,7 @@ INCLUDE macro.asm
             compareStrings inputString, infoString, info
             JMP no_es_info
 
-        info:
+        info:                           ;---------------------- info
             limpiarCadena inputString
             mostrarInfo                 ; muestra la info
             JMP Menu
@@ -239,7 +333,7 @@ INCLUDE macro.asm
         no_es_salir:
             PrintColor msj, 4
             limpiarCadena inputString
-            JMP Main
+            JMP Menu
 
     Main ENDP
 END
