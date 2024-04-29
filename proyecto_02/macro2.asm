@@ -926,22 +926,22 @@ BuildTablaFrecuencias2 MACRO
         INC BX
         LOOP forDatos
 
-        MOV tablaFrecuencias[SI], AH
+        MOV tablaF[SI], AH
         INC SI
-        MOV tablaFrecuencias[SI], AL
+        MOV tablaF[SI], AL
         INC SI 
 
         JMP ExitModa
 
         saveFrecuencia:
-            MOV tablaFrecuencias[SI], AH
+            MOV tablaF[SI], AH
             INC SI
-            MOV tablaFrecuencias[SI], AL
+            MOV tablaF[SI], AL
             INC SI
 
-            MOV AH, numEntradas
+            MOV AH, numE
             INC AH
-            MOV numEntradas, AH
+            MOV numE, AH
 
             MOV AH, bufferDatos[BX]
             MOV AL, 0
@@ -958,21 +958,21 @@ OrderFrecuencies2 MACRO
     XOR CX, CX
     XOR DX, DX
 
-    MOV CL, numEntradas
+    MOV CL, numE
     DEC CX
     MOV DL, 0
     for1:
         PUSH CX
 
-        MOV CL, numEntradas
+        MOV CL, numE
         DEC CX
         SUB CX, DX
         MOV SI, 0
         for2:
-            MOV AH, tablaFrecuencias[SI]
-            MOV AL, tablaFrecuencias[SI + 1]
-            MOV BH, tablaFrecuencias[SI + 2]
-            MOV BL, tablaFrecuencias[SI + 3]
+            MOV AH, tablaF[SI]
+            MOV AL, tablaF[SI + 1]
+            MOV BH, tablaF[SI + 2]
+            MOV BL, tablaF[SI + 3]
 
             CMP AL, BL
             JA Intercambio
@@ -982,10 +982,10 @@ OrderFrecuencies2 MACRO
 
             Intercambio:
                 XCHG AX, BX
-                MOV tablaFrecuencias[SI], AH
-                MOV tablaFrecuencias[SI + 1], AL
-                MOV tablaFrecuencias[SI + 2], BH
-                MOV tablaFrecuencias[SI + 3], BL
+                MOV tablaF[SI], AH
+                MOV tablaF[SI + 1], AL
+                MOV tablaF[SI + 2], BH
+                MOV tablaF[SI + 3], BL
                 ADD SI, 2
 
             LOOP for2
@@ -1001,7 +1001,7 @@ Moda2 MACRO
     LOCAL CicloModa, ExitCalcModa
     XOR AX, AX
     XOR BX, BX
-    MOV AL, numEntradas
+    MOV AL, numE
     MOV BL, 2
     MUL BL
     MOV DI, AX
@@ -1011,9 +1011,9 @@ Moda2 MACRO
         XOR AX, AX
         XOR BX, BX
 
-        MOV AL, tablaFrecuencias[DI] ; ? Frecuencia
+        MOV AL, tablaF[DI] ; ? Frecuencia
         DEC DI
-        MOV BL, tablaFrecuencias[DI] ; ? Valor
+        MOV BL, tablaF[DI] ; ? Valor
         DEC DI
         
         PUSH AX
@@ -1029,6 +1029,7 @@ Moda2 MACRO
 
         EscribirArchivo msj3
         EscribirArchivo cadenaResult
+        EscribirArchivo salto2
         
 
         POP AX
@@ -1043,9 +1044,9 @@ Moda2 MACRO
         ;PrintCadena msgModa2
         ;PrintCadena cadenaResult
 
-        EscribirArchivo msj4
-        EscribirArchivo cadenaResult
-        EscribirArchivo salto
+        ;EscribirArchivo msj4
+        ;EscribirArchivo cadenaResult
+        ;EscribirArchivo salto
 
         POP AX
         
@@ -1059,17 +1060,17 @@ ENDM
 PrintTablaFrecuencias2 MACRO
     LOCAL tabla, ExitPrintTabla
 
-    EscribirArchivo salto
+    EscribirArchivo salto2
     EscribirArchivo msgEncabezadoTabla2
-    EscribirArchivo salto
+    EscribirArchivo salto2
     EscribirArchivo msgEncabezadoTabla
-    EscribirArchivo salto
+    EscribirArchivo salto2
     EscribirArchivo msgEncabezadoTabla2
-    EscribirArchivo salto
+    EscribirArchivo salto2
 
     XOR AX, AX
     XOR BX, BX
-    MOV AL, numEntradas
+    MOV AL, numE
     MOV CX, AX
     MOV BL, 2
     MUL BL
@@ -1081,9 +1082,9 @@ PrintTablaFrecuencias2 MACRO
         XOR AX, AX
         XOR BX, BX
 
-        MOV AL, tablaFrecuencias[DI]
+        MOV AL, tablaF[DI]
         DEC DI
-        MOV BL, tablaFrecuencias[DI]  
+        MOV BL, tablaF[DI]  
         DEC DI
 
         
@@ -1118,7 +1119,7 @@ PrintTablaFrecuencias2 MACRO
         EscribirArchivo cadenaResult
         EscribirArchivo espacios
         EscribirArchivo formatoTabla
-        EscribirArchivo salto
+        EscribirArchivo salto2
 
 
         POP CX

@@ -57,9 +57,10 @@ INCLUDE macro2.asm
         msgContadorDatos    db "    El Total De Datos Utilizados Ha Sido De: ", "$"
         msgModa1            db "    La Moda De Los Datos Es: ", "$"
         msgModa2            db "    Con Una Frecuencia De: ", "$"
-        msgEncabezadoTabla  db "    |    V    |   Fr   |", "$"
-        msgEncabezadoTabla2 db "    +------------------+", "$"
+        msgEncabezadoTabla  db "    |    V    |    Fr   |", "$"
+        msgEncabezadoTabla2 db "    +-------------------+", "$"
         salto               db 10, 13, "$"
+        salto2               db 10, "$"
         formatoTabla        db "|", "$"   
         espacios            db 32, 32, "$"
         numCSV              db 3 dup(?)
@@ -77,6 +78,8 @@ INCLUDE macro2.asm
 
         ;------------------ datos2
         tablaF              db 100 dup(?)
+        numE                db 1
+        entero2              dw ?
 
 
     
@@ -313,23 +316,23 @@ INCLUDE macro2.asm
 
             Promedio2
             MOV base, 10000
-            EscribirArchivo salto
+            EscribirArchivo salto2
 
             Mediana2
             MOV base, 10000
-            EscribirArchivo salto
+            EscribirArchivo salto2
 
             Minimo2 
             MOV base, 10000
-            EscribirArchivo salto
+            EscribirArchivo salto2
 
             Maximo2
             MOV base, 10000
-            EscribirArchivo salto
+            EscribirArchivo salto2
 
             ContadorDatos2
             MOV base, 10000
-            EscribirArchivo salto
+            EscribirArchivo salto2
 
             BuildTablaFrecuencias2
             OrderFrecuencies2
@@ -344,14 +347,14 @@ INCLUDE macro2.asm
 
             EscribirArchivo  fechaStr
             ImpFecha fechaDB
-            EscribirArchivo  salto
+            EscribirArchivo  salto2
             EscribirArchivo  horaStr
             ImpHora horaDB
-            EscribirArchivo  salto
+            EscribirArchivo  salto2
             EscribirArchivo  nombre
-            EscribirArchivo  salto
+            EscribirArchivo  salto2
             EscribirArchivo  id
-            EscribirArchivo  salto
+            EscribirArchivo  salto2
 
             PrintColor msj13, 9
             limpiarCadena inputString
