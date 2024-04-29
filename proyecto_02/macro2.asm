@@ -688,3 +688,445 @@ PrintTablaFrecuencias MACRO
 
     ExitPrintTabla:
 ENDM
+
+;--- reportes
+Promedio2 MACRO
+    LOCAL Sumatoria, CicloDecimal, ContinuarProm
+    XOR AX, AX
+    XOR BX, BX
+    XOR CX, CX
+    XOR DX, DX
+
+    MOV CX, numDatos
+    Sumatoria:
+        MOV DL, bufferDatos[BX]
+        ADD AX, DX
+        INC BX
+        MOV DX, 0
+        LOOP Sumatoria
+    
+    MOV DX, 0
+    MOV BX, numDatos
+    DIV BX
+    MOV entero, AX
+    MOV decimal, DX
+    MOV SI, 0
+
+    CrearCadena entero, cadenaResult
+
+    MOV cadenaResult[SI], 46
+    INC SI
+
+    CMP decimal, 0
+    JNE CicloDecimal
+
+    MOV cadenaResult[SI], 48
+    INC SI
+    MOV cadenaResult[SI], 48
+    JMP ContinuarProm
+
+    CicloDecimal:
+        MOV AX, decimal
+        MOV BX, 10
+        MOV DX, 0
+        MUL BX
+
+        MOV BX, numDatos
+        MOV DX, 0
+        DIV BX
+
+        MOV decimal, DX
+        MOV entero, AX
+        CrearCadena entero, cadenaResult
+        MOV AL, cantDecimal
+        INC AL
+        MOV cantDecimal, AL
+        CMP AL, 2
+        JNE CicloDecimal
+
+    ContinuarProm:
+        MOV cantDecimal, 0
+        ;PrintCadena msgPromedio
+        ;PrintCadena cadenaResult
+
+        EscribirArchivo msj1
+        EscribirArchivo cadenaResult
+ENDM
+
+Mediana2 MACRO
+    LOCAL CalcPromedio, ExitCalcMediana, CicloDecimal
+    XOR AX, AX
+    XOR BX, BX
+    XOR DX, DX
+
+    MOV AX, numDatos
+    MOV BX, 2
+    DIV BX
+
+    MOV BX, AX
+
+    CMP DX, 0
+    JZ CalcPromedio
+    
+    XOR DX, DX
+    MOV DL, bufferDatos[BX]
+    MOV entero, DX
+    MOV SI, 0
+
+    CrearCadena entero, cadenaResult
+
+    MOV cadenaResult[SI], 46
+    INC SI
+    MOV cadenaResult[SI], 48
+    INC SI
+    MOV cadenaResult[SI], 48
+    INC SI
+    MOV cadenaResult[SI], 36
+    JMP ExitCalcMediana
+
+    CalcPromedio:
+        XOR AX, AX
+        DEC BX
+        ADD AL, bufferDatos[BX]
+        ADD AL, bufferDatos[BX + 1]
+        MOV DX, 0
+        MOV BX, 2
+        DIV BX
+        MOV entero, AX
+        MOV decimal, DX
+        MOV SI, 0
+
+        CrearCadena entero, cadenaResult
+
+        MOV cadenaResult[SI], 46
+        INC SI
+
+        CMP decimal, 0
+        JNE CicloDecimal
+
+        MOV cadenaResult[SI], 48
+        INC SI
+        MOV cadenaResult[SI], 48
+        INC SI
+        MOV cadenaResult[SI], 36
+        JMP ExitCalcMediana
+
+        CicloDecimal:
+            MOV AX, decimal
+            MOV BX, 10
+            MOV DX, 0
+            MUL BX
+
+            MOV BX, 2
+            MOV DX, 0
+            DIV BX
+
+            MOV decimal, DX
+            MOV entero, AX
+            CrearCadena entero, cadenaResult
+            MOV AL, cantDecimal
+            INC AL
+            MOV cantDecimal, AL
+            CMP AL, 2
+            JNE CicloDecimal
+
+    ExitCalcMediana:
+        MOV cantDecimal, 0
+
+        ;PrintCadena msgMediana
+        ;PrintCadena cadenaResult
+
+        EscribirArchivo msj2
+        EscribirArchivo cadenaResult
+
+ENDM
+
+
+Maximo2 MACRO
+    XOR AX, AX
+    MOV BX, numDatos
+    DEC BX
+    MOV AL, bufferDatos[BX]
+    MOV entero, AX
+    MOV SI, 0
+
+    CrearCadena entero, cadenaResult
+    MOV cadenaResult[SI], 46
+    INC SI
+    MOV cadenaResult[SI], 48
+    INC SI
+    MOV cadenaResult[SI], 48
+    INC SI
+    MOV cadenaResult[SI], 36
+
+    ;PrintCadena salto
+    ;PrintCadena msgMaximo
+    ;PrintCadena cadenaResult
+
+    EscribirArchivo msj5
+    EscribirArchivo cadenaResult
+ENDM
+
+Minimo2 MACRO
+    XOR AX, AX
+    MOV AL, bufferDatos[0]
+    MOV entero, AX
+    MOV SI, 0
+
+    CrearCadena entero, cadenaResult
+    MOV cadenaResult[SI], 46
+    INC SI
+    MOV cadenaResult[SI], 48
+    INC SI
+    MOV cadenaResult[SI], 48
+    INC SI
+    MOV cadenaResult[SI], 32
+
+
+    ;PrintCadena msgMinimo
+    ;PrintCadena cadenaResult
+
+    EscribirArchivo msj6
+    EscribirArchivo cadenaResult
+ENDM
+
+
+ContadorDatos2 MACRO
+    XOR AX, AX
+    MOV AX, numDatos
+    MOV entero, AX
+    MOV SI, 0
+
+    CrearCadena entero, cadenaResult
+
+    MOV cadenaResult[SI], 46
+
+
+    ;PrintCadena msgContadorDatos
+    ;PrintCadena cadenaResult
+
+    EscribirArchivo msj7
+    EscribirArchivo cadenaResult
+ENDM
+
+BuildTablaFrecuencias2 MACRO
+    LOCAL forDatos, saveFrecuencia, ExitModa
+    XOR AX, AX
+    XOR BX, BX
+    XOR CX, CX
+    XOR SI, SI
+
+    MOV CX, numDatos
+    MOV AH, bufferDatos[BX]
+    forDatos:
+        CMP AH, bufferDatos[BX]
+        JNE saveFrecuencia
+
+        INC AL
+        INC BX
+        LOOP forDatos
+
+        MOV tablaFrecuencias[SI], AH
+        INC SI
+        MOV tablaFrecuencias[SI], AL
+        INC SI 
+
+        JMP ExitModa
+
+        saveFrecuencia:
+            MOV tablaFrecuencias[SI], AH
+            INC SI
+            MOV tablaFrecuencias[SI], AL
+            INC SI
+
+            MOV AH, numEntradas
+            INC AH
+            MOV numEntradas, AH
+
+            MOV AH, bufferDatos[BX]
+            MOV AL, 0
+        
+        JMP forDatos
+
+    ExitModa:
+ENDM
+
+OrderFrecuencies2 MACRO
+    LOCAL for1, for2, Intercambio, terminarFor2
+    XOR AX, AX
+    XOR BX, BX
+    XOR CX, CX
+    XOR DX, DX
+
+    MOV CL, numEntradas
+    DEC CX
+    MOV DL, 0
+    for1:
+        PUSH CX
+
+        MOV CL, numEntradas
+        DEC CX
+        SUB CX, DX
+        MOV SI, 0
+        for2:
+            MOV AH, tablaFrecuencias[SI]
+            MOV AL, tablaFrecuencias[SI + 1]
+            MOV BH, tablaFrecuencias[SI + 2]
+            MOV BL, tablaFrecuencias[SI + 3]
+
+            CMP AL, BL
+            JA Intercambio
+            ADD SI, 2
+            LOOP for2
+            JMP terminarFor2
+
+            Intercambio:
+                XCHG AX, BX
+                MOV tablaFrecuencias[SI], AH
+                MOV tablaFrecuencias[SI + 1], AL
+                MOV tablaFrecuencias[SI + 2], BH
+                MOV tablaFrecuencias[SI + 3], BL
+                ADD SI, 2
+
+            LOOP for2
+        
+        terminarFor2:
+            POP CX
+            INC DL
+            LOOP for1
+
+ENDM
+
+Moda2 MACRO
+    LOCAL CicloModa, ExitCalcModa
+    XOR AX, AX
+    XOR BX, BX
+    MOV AL, numEntradas
+    MOV BL, 2
+    MUL BL
+    MOV DI, AX
+    DEC DI
+
+    CicloModa:
+        XOR AX, AX
+        XOR BX, BX
+
+        MOV AL, tablaFrecuencias[DI] ; ? Frecuencia
+        DEC DI
+        MOV BL, tablaFrecuencias[DI] ; ? Valor
+        DEC DI
+        
+        PUSH AX
+        MOV entero, BX
+        MOV SI, 0
+        MOV base, 10000
+        CrearCadena entero, cadenaResult
+        MOV cadenaResult[SI], 46
+
+        ;PrintCadena salto
+        ;PrintCadena msgModa1
+        ;PrintCadena cadenaResult
+
+        EscribirArchivo msj3
+        EscribirArchivo cadenaResult
+        
+
+        POP AX
+        MOV entero, AX
+        
+        PUSH AX
+        MOV SI, 0
+        MOV base, 10000
+
+        CrearCadena entero, cadenaResult
+
+        ;PrintCadena msgModa2
+        ;PrintCadena cadenaResult
+
+        EscribirArchivo msj4
+        EscribirArchivo cadenaResult
+        EscribirArchivo salto
+
+        POP AX
+        
+        CMP AL, tablaFrecuencias[DI]
+        JA ExitCalcModa
+        JMP CicloModa
+
+    ExitCalcModa:
+ENDM
+
+PrintTablaFrecuencias2 MACRO
+    LOCAL tabla, ExitPrintTabla
+
+    EscribirArchivo salto
+    EscribirArchivo msgEncabezadoTabla2
+    EscribirArchivo salto
+    EscribirArchivo msgEncabezadoTabla
+    EscribirArchivo salto
+    EscribirArchivo msgEncabezadoTabla2
+    EscribirArchivo salto
+
+    XOR AX, AX
+    XOR BX, BX
+    MOV AL, numEntradas
+    MOV CX, AX
+    MOV BL, 2
+    MUL BL
+    MOV DI, AX
+    DEC DI
+
+    tabla:
+        PUSH CX
+        XOR AX, AX
+        XOR BX, BX
+
+        MOV AL, tablaFrecuencias[DI]
+        DEC DI
+        MOV BL, tablaFrecuencias[DI]  
+        DEC DI
+
+        
+        PUSH AX
+        MOV entero, BX
+        MOV SI, 0
+        MOV base, 10000
+        CrearCadena entero, cadenaResult
+
+        MOV cadenaResult[SI], 46
+
+        EscribirArchivo espacios
+        EscribirArchivo espacios
+        EscribirArchivo formatoTabla
+        EscribirArchivo espacios
+        EscribirArchivo cadenaResult
+
+        POP AX
+        MOV entero, AX
+        
+        MOV SI, 0
+        MOV base, 10000
+        CrearCadena entero, cadenaResult
+        MOV cadenaResult[SI], 32 
+        ;PrintCadena espacios
+        EscribirArchivo espacios
+
+        ;or
+        EscribirArchivo Barra
+
+        EscribirArchivo espacios
+        EscribirArchivo cadenaResult
+        EscribirArchivo espacios
+        EscribirArchivo formatoTabla
+        EscribirArchivo salto
+
+
+        POP CX
+        DEC CX
+        CMP CX, 0
+        JE ExitPrintTabla
+        JMP tabla
+
+
+    ExitPrintTabla:
+ENDM

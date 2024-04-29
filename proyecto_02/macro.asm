@@ -111,7 +111,7 @@ mostrarInfo MACRO
 ENDM
 
 ;----------------------------------------------
-ImpFechaDB MACRO salidaSTR
+ImpFecha MACRO salidaSTR
     ; Obtener la fecha actual
     mov ah, 2Ah                 ; Servicio para obtener la fecha actual
     int 21h                     ; Llamar a la interrupción DOS
@@ -148,8 +148,10 @@ ImpFechaDB MACRO salidaSTR
     mov [salidaSTR + 6], ah     ; Guardar decenas año
     xor ah,ah
 
-    mov [salidaSTR + 8], "|"
+    EscribirArchivo salidaSTR
+ENDM
 
+ImpHora MACRO salidaSTR
     mov ah, 2Ch       ; Servicio para obtener la hora actual
     int 21h           ; Llamar a la interrupción DOS
 
@@ -159,28 +161,28 @@ ImpFechaDB MACRO salidaSTR
     div bl
     add al, 30h
     add ah, 30h
-    mov [salidaSTR + 9], al ; Guardar hora
-    mov [salidaSTR + 10], ah
+    mov [salidaSTR], al ; Guardar hora
+    mov [salidaSTR + 1], ah
 
-    mov [salidaSTR + 11], 58 ; Caracter ':'
+    mov [salidaSTR + 2], 58 ; Caracter ':'
 
     xor ax, ax
     mov al, cl        ; Minutos actuales
     div bl
     add al, 30h
     add ah, 30h
-    mov [salidaSTR + 12], al ; Guardar minutos
-    mov [salidaSTR + 13], ah 
+    mov [salidaSTR + 3], al ; Guardar minutos
+    mov [salidaSTR + 4], ah 
 
-    mov [salidaSTR + 14], 58 ; Caracter ':'
+    mov [salidaSTR + 5], 58 ; Caracter ':'
 
     xor ax, ax
     mov al, dh        ; Segundos actuales
     div bl
     add al, 30h
     add ah, 30h
-    mov [salidaSTR + 15], al ; Guardar segundos
-    mov [salidaSTR + 16], ah
+    mov [salidaSTR + 6], al ; Guardar segundos
+    mov [salidaSTR + 7], ah
     mov [segundos], dh ; Guardar minutos
 
     EscribirArchivo salidaSTR
@@ -294,3 +296,4 @@ read_file:
     mov bytesRead, ax  ; Guardar el número de bytes leídos
 fin:
 ENDM
+

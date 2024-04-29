@@ -26,7 +26,7 @@ INCLUDE macro2.asm
         l20 db "                ### ###  #.  ## #    ##=   ## #  ###### -# ### ##  ",10,13, "$"                       
         l21 db "                ##   ##   ###   #### ##    ## ##.#    ###   #  ##  ",10,13, "$"
 
-        info0 db  "    ARQUITECTURA DE COMPUTADORES 1",10,13, "$"
+        info0 db "    ARQUITECTURA DE COMPUTADORES 1",10,13, "$"
         info1 db "    Y ENSAMBLADORES 1 - A",10,13, "$"
         info2 db "    PRIMER SEMESTRE 2024",10,13, "$"
         info3 db "    sheila Amaya",10,13, "$"
@@ -57,8 +57,8 @@ INCLUDE macro2.asm
         msgContadorDatos    db "    El Total De Datos Utilizados Ha Sido De: ", "$"
         msgModa1            db "    La Moda De Los Datos Es: ", "$"
         msgModa2            db "    Con Una Frecuencia De: ", "$"
-        msgEncabezadoTabla  db "    |  V  |  Fr  |", "$"
-        msgEncabezadoTabla2 db "    +------------+", "$"
+        msgEncabezadoTabla  db "    |    V    |   Fr   |", "$"
+        msgEncabezadoTabla2 db "    +------------------+", "$"
         salto               db 10, 13, "$"
         formatoTabla        db "|", "$"   
         espacios            db 32, 32, "$"
@@ -75,6 +75,11 @@ INCLUDE macro2.asm
         decimal             dw ?
         cantDecimal         db 0
 
+        ;------------------ datos2
+        tablaF              db 100 dup(?)
+
+
+    
 
         nombreDB db "202000558.txt", 0
         filehandle dw ?
@@ -82,19 +87,19 @@ INCLUDE macro2.asm
         dataTXT db 1024 dup("$")
         segundos db 2 dup("$")
         Barra db "|", "$"
-        horaDB db 18 dup("$")
+        horaDB db 10 dup(32)
+        fechaDB db 10 dup(32)
         espacio db "    ", "$"
         espacio11 db "            ", "$"
 
 
         ;------------------ comandos
         inputString db 16 dup(0)
-        frecString          db 'frec', 0
         promedioString      db 'prom', 0
-        medianaString       db 'med', 0
+        medianaString       db 'med' , 0
         modaString          db 'moda', 0
-        maximoString        db 'max', 0
-        minimoString        db 'min', 0
+        maximoString        db 'max' , 0
+        minimoString        db 'min' , 0
         contadorString      db 'contador', 0
         barra_aString       db 'graf_barra_asc', 0
         barra_dString       db 'graf_barra_desc', 0
@@ -112,16 +117,18 @@ INCLUDE macro2.asm
         msj4 db " Frecuencia   : ", "$"
         msj5 db " Maximo       : ", "$"
         msj6 db " Minimo       : ", "$"
-        msj7 db " Contador      : ", "$"
+        msj7 db " Contador     : ", "$"
+        msj13 db "    Archivo creado ...", "$"
 
         msj8 db "desde barra_a", "$"
         msj9 db "desde barra_d", "$"
         msj10 db "desde grafico_l", "$"
-        msj11 db "desde abrir_archivo", "$"
-        msj12 db "desde limpiar", "$"
-        msj13 db "desde reporte", "$"
-        msj14 db "desde info", "$"
         msj db " >> Err", "$"
+
+        nombre   db "Nombre : Sheila Amaya", "$"
+        id       db "Carnet : 202000558", "$"
+        fechaStr db "Fecha  : ", "$"
+        horaStr  db "Hora   : ", "$"
 
 .CODE
     MOV AX, @data
@@ -185,19 +192,24 @@ INCLUDE macro2.asm
             MOV base, 10000
 
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                     ; ------------------- fin mediana
         
         no_es_mediana:
             compareStrings inputString, modaString, moda1
             JMP no_es_moda
 
         moda1:                             ;---------------------- moda
+
+            BuildTablaFrecuencias
+            OrderFrecuencies
+            MOV base, 10000
+            ;PrintTablaFrecuencias
+            ;printCadena msgEncabezadoTabla2
+
             Moda
             MOV base, 10000
             
-            CerrarArchivo  ; reporte
-            limpiarCadena inputString
-            JMP Menu
+            JMP Menu                       ; ------------------- fin moda
 
         no_es_moda:
             compareStrings inputString, maximoString, maximo1
@@ -209,7 +221,7 @@ INCLUDE macro2.asm
             MOV base, 10000
 
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                       ; ------------------- fin maximo
 
         no_es_maximo:
             compareStrings inputString, minimoString, minimo1
@@ -221,7 +233,7 @@ INCLUDE macro2.asm
             MOV base, 10000
 
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                    ; ------------------- fin minimo
 
         no_es_minimo:
             compareStrings inputString, contadorString, contador1
@@ -233,55 +245,41 @@ INCLUDE macro2.asm
             MOV base, 10000
 
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                    ; ------------------- fin contador
 
         no_es_contador:
-            compareStrings inputString, frecString, Frec1
-            JMP no_es_frec
-
-        Frec1:                          ;---------------------- frecuencia
-            BuildTablaFrecuencias
-            OrderFrecuencies
-            MOV base, 10000
-            PrintTablaFrecuencias
-            printCadena msgEncabezadoTabla2
-
-            limpiarCadena inputString
-            JMP Menu
-
-        no_es_frec:
             compareStrings inputString, barra_aString, barra_a1
             JMP no_es_barra_a
 
         barra_a1:                       ;---------------------- barra_ascendente
-            PrintColor msj7, 1
+            PrintColor msj8, 1
             limpiarCadena inputString 
-            JMP Menu
+            JMP Menu                    ; ------------------- fin barra_ascendente
 
         no_es_barra_a:  
             compareStrings inputString, barra_dString, barra_d1
             JMP no_es_barra_d
 
         barra_d1:                       ;---------------------- barra_descendente
-            PrintColor msj8, 11 ; verde claro
+            PrintColor msj9, 11 ; verde claro
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                    ; ------------------- fin barra_descendente
 
         no_es_barra_d:
             compareStrings inputString, grafico_lString, grafico_l1
             JMP no_es_grafico_l
 
         grafico_l1:                     ;---------------------- grafico_lineal
-            PrintColor msj9, 12 ; verde claro
+            PrintColor msj10, 12 ; verde claro
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                   ; ------------------- fin grafico_lineal
 
         no_es_grafico_l:
             compareStrings inputString, abrir_archivoString, abrir_archivo1
             JMP no_es_abrir_archivo
 
         abrir_archivo1:                 ;-------------------- abrir archivo
-
+            
             PrintColor msgToRequestFile, 7 
             PedirCadena filename
 
@@ -293,7 +291,7 @@ INCLUDE macro2.asm
             OrderData
 
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                    ; ------------------- fin abrir archivo
 
         no_es_abrir_archivo:
             compareStrings inputString, limpiarString, limpiar1
@@ -302,7 +300,7 @@ INCLUDE macro2.asm
         limpiar1:                       ;---------------------- limpiar consola
             clearConsole
             limpiarCadena inputString
-            JMP Menu
+            JMP Menu                    ; ------------------- fin limpiar consola
 
         no_es_limpiar:
             compareStrings inputString, reporteString, reporte1
@@ -310,8 +308,55 @@ INCLUDE macro2.asm
 
         reporte1:                       ;---------------------- reporte
             
+            AbrirArchivo
+            AbrirArchivo3
+
+            Promedio2
+            MOV base, 10000
+            EscribirArchivo salto
+
+            Mediana2
+            MOV base, 10000
+            EscribirArchivo salto
+
+            Minimo2 
+            MOV base, 10000
+            EscribirArchivo salto
+
+            Maximo2
+            MOV base, 10000
+            EscribirArchivo salto
+
+            ContadorDatos2
+            MOV base, 10000
+            EscribirArchivo salto
+
+            BuildTablaFrecuencias2
+            OrderFrecuencies2
+            MOV base, 10000
+
+            Moda2
+            MOV base, 10000
+
+            PrintTablaFrecuencias2
+            EscribirArchivo msgEncabezadoTabla2
+            EscribirArchivo salto
+
+            EscribirArchivo  fechaStr
+            ImpFecha fechaDB
+            EscribirArchivo  salto
+            EscribirArchivo  horaStr
+            ImpHora horaDB
+            EscribirArchivo  salto
+            EscribirArchivo  nombre
+            EscribirArchivo  salto
+            EscribirArchivo  id
+            EscribirArchivo  salto
+
+            PrintColor msj13, 9
             limpiarCadena inputString
-            JMP Menu
+            CerrarArchivo
+            JMP Menu                    ; ------------------- fin reporte
 
         no_es_reporte:
             compareStrings inputString, infoString, info
@@ -320,7 +365,7 @@ INCLUDE macro2.asm
         info:                           ;---------------------- info
             limpiarCadena inputString
             mostrarInfo                 ; muestra la info
-            JMP Menu
+            JMP Menu                    ; ------------------- fin info
 
         no_es_info:
             compareStrings inputString, salirString, salir
