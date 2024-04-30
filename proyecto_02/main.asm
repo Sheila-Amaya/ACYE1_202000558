@@ -21,7 +21,7 @@ INCLUDE macro2.asm
         l15 db "                                       ##                          ",10,13, "$"                       
         l16 db "                                                                   ",10,13, "$"                       
         l17 db "                                                                   ",10,13, "$"                       
-        l18 db "               ##  #  ## #####  ##   ##### #####   ##    ##   ##   ",10,13, "$"                       
+        l18 db "                ##  #  ## #####  ##   ##### #####   ##    ##   ##   ",10,13, "$"                       
         l19 db "               .# ### ## #   ## ##   ##    ## ##  # -#   #.# ###   ",10,13, "$"                       
         l20 db "                ### ###  #.  ## #    ##=   ## #  ###### -# ### ##  ",10,13, "$"                       
         l21 db "                ##   ##   ###   #### ##    ## ##.#    ###   #  ##  ",10,13, "$"
@@ -34,29 +34,30 @@ INCLUDE macro2.asm
         info5 db "    Proyecto 2 Assembler",10,13, "$"
 
         enter_continuar  db  '       Presionar ENTER para continuar ','$'
+        enter_continuar2  db  ' ... ','$'
         saltoLinea db 10, 13, "$"
         msj0 db " >> ", "$"
 
         ;------------------ op 
         handlerFile         dw ?
         filename            db 30 dup(32)
-        bufferDatos         db 300 dup (?)
+        bufferDatos         db 1200 dup (?)
         errorCode           db ?
-        errorOpenFile       db "    Ocurrio Un Error Al Abrir El Archivo - ERRCODE: ", "$"
-        errorCloseFile      db "    Ocurrio Un Error Al Cerrar El Archivo - ERRCODE: ", "$"
-        errorReadFile       db "    Ocurrio Un Error Al Leer El CSV - ERRCODE: ", "$"
+        errorOpenFile       db "    Ocurrio Un Error al Abrir El Archivo - ERRCODE: ", "$"
+        errorCloseFile      db "    Ocurrio Un Error al Cerrar El Archivo - ERRCODE: ", "$"
+        errorReadFile       db "    Ocurrio Un Error al Leer El CSV - ERRCODE: ", "$"
         errorSizeFile       db "    Ocurrio Un Error Obteniendo El Size Del Archivo - ERRCODE: ", "$"
         exitOpenFileMsg     db "    El Archivo Se Abrio Correctamente", "$"
         exitCloseFileMsg    db "    El Archivo Se Cerro Correctamente", "$"
         exitSizeFileMsg     db "    Se Obtuvo La Longitud Correctamente", "$"
         msgToRequestFile    db "  > ", "$"
-        msgPromedio         db "    El Promedio De Los Datos Es: ", "$"
-        msgMaximo           db "    El Valor Maximo De Los Datos Es: ", "$"
-        msgMinimo           db "    El Valor Minimo De Los Datos Es: ", "$"
-        msgMediana          db "    El Valor De la Mediana De Los Datos Es: ", "$"
-        msgContadorDatos    db "    El Total De Datos Utilizados Ha Sido De: ", "$"
-        msgModa1            db "    La Moda De Los Datos Es: ", "$"
-        msgModa2            db "    Con Una Frecuencia De: ", "$"
+        msgPromedio         db "    ", "$"
+        msgMaximo           db "    ", "$"
+        msgMinimo           db "    ", "$"
+        msgMediana          db "    ", "$"
+        msgContadorDatos    db "    ", "$"
+        msgModa1            db "    Moda      : ", "$"
+        msgModa2            db "    Frecuencia: ", "$"
         msgEncabezadoTabla  db "    |    V    |    Fr   |", "$"
         msgEncabezadoTabla2 db "    +-------------------+", "$"
         salto               db 10, 13, "$"
@@ -77,12 +78,10 @@ INCLUDE macro2.asm
         cantDecimal         db 0
 
         ;------------------ datos2
-        tablaF              db 100 dup(?)
+        tablaF              db 400 dup(?)
         numE                db 1
         entero2              dw ?
 
-
-    
 
         nombreDB db "202000558.txt", 0
         filehandle dw ?
@@ -123,15 +122,16 @@ INCLUDE macro2.asm
         msj7 db " Contador     : ", "$"
         msj13 db "    Archivo creado ...", "$"
 
-        msj8 db "desde barra_a", "$"
-        msj9 db "desde barra_d", "$"
-        msj10 db "desde grafico_l", "$"
         msj db " >> Err", "$"
 
         nombre   db "Nombre : Sheila Amaya", "$"
         id       db "Carnet : 202000558", "$"
         fechaStr db "Fecha  : ", "$"
         horaStr  db "Hora   : ", "$"
+
+        ;------------------
+        msgDosPuntosEspacio db ': ', 0
+        msgLineaHorizontal db '-', 0
 
 .CODE
     MOV AX, @data
@@ -195,7 +195,7 @@ INCLUDE macro2.asm
             MOV base, 10000
 
             limpiarCadena inputString
-            JMP Menu                     ; ------------------- fin mediana
+            JMP Menu                      ; ------------------- fin mediana
         
         no_es_mediana:
             compareStrings inputString, modaString, moda1
@@ -211,7 +211,6 @@ INCLUDE macro2.asm
 
             Moda
             MOV base, 10000
-            
             JMP Menu                       ; ------------------- fin moda
 
         no_es_moda:
@@ -236,7 +235,7 @@ INCLUDE macro2.asm
             MOV base, 10000
 
             limpiarCadena inputString
-            JMP Menu                    ; ------------------- fin minimo
+            JMP Menu                     ; ------------------- fin minimo
 
         no_es_minimo:
             compareStrings inputString, contadorString, contador1
@@ -255,7 +254,13 @@ INCLUDE macro2.asm
             JMP no_es_barra_a
 
         barra_a1:                       ;---------------------- barra_ascendente
-            PrintColor msj8, 1
+            CambiarModoVideo
+            DibujarLineas
+
+            PrintColor enter_continuar2, 11
+            pauseUntilEnter
+
+            CambiarModoTexto
             limpiarCadena inputString 
             JMP Menu                    ; ------------------- fin barra_ascendente
 
@@ -264,7 +269,13 @@ INCLUDE macro2.asm
             JMP no_es_barra_d
 
         barra_d1:                       ;---------------------- barra_descendente
-            PrintColor msj9, 11 ; verde claro
+            CambiarModoVideo
+
+
+            PrintColor enter_continuar2, 11
+            pauseUntilEnter
+
+            CambiarModoTexto
             limpiarCadena inputString
             JMP Menu                    ; ------------------- fin barra_descendente
 
@@ -273,7 +284,13 @@ INCLUDE macro2.asm
             JMP no_es_grafico_l
 
         grafico_l1:                     ;---------------------- grafico_lineal
-            PrintColor msj10, 12 ; verde claro
+            CambiarModoVideo
+
+
+            PrintColor enter_continuar2, 11
+            pauseUntilEnter
+
+            CambiarModoTexto
             limpiarCadena inputString
             JMP Menu                   ; ------------------- fin grafico_lineal
 
@@ -283,6 +300,7 @@ INCLUDE macro2.asm
 
         abrir_archivo1:                 ;-------------------- abrir archivo
             
+            Clean ; limpia las variables
             PrintColor msgToRequestFile, 7 
             PedirCadena filename
 
@@ -367,7 +385,7 @@ INCLUDE macro2.asm
 
         info:                           ;---------------------- info
             limpiarCadena inputString
-            mostrarInfo                 ; muestra la info
+            mostrarInfo                 ; macro muestra la info
             JMP Menu                    ; ------------------- fin info
 
         no_es_info:

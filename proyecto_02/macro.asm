@@ -297,3 +297,36 @@ read_file:
 fin:
 ENDM
 
+;------------------------- 
+CambiarModoVideo MACRO
+    MOV AL, 13h
+    MOV AH, 00h
+    INT 10h    
+ENDM
+
+CambiarModoTexto MACRO
+    MOV AL, 03h
+    MOV AH, 00h
+    INT 10h
+ENDM
+
+
+;---------
+EscribirArchivo2 MACRO params
+LOCAL Inicio, Fin
+    push si
+    mov si, 00h
+Inicio:
+    cmp params[si], "$"
+    je Fin
+    inc si
+    jmp Inicio
+
+Fin:
+    mov ah, 40h  ; Función 40h: Escribir en archivo
+    mov bx, filehandle  ; Manejador de archivo
+    lea dx, params     ; Mensaje a escribir
+    mov cx, si  ; Número de bytes a escribir
+    int 21h      ; Llamar a DOS
+    pop si
+ENDM

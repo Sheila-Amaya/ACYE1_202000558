@@ -350,7 +350,7 @@ Maximo MACRO
     INC SI
     MOV cadenaResult[SI], 36
 
-    PrintCadena salto
+    ;PrintCadena salto
     PrintCadena msgMaximo
     PrintCadena cadenaResult
 ENDM
@@ -589,7 +589,7 @@ Moda MACRO
         CrearCadena entero, cadenaResult
         MOV cadenaResult[SI], 36
 
-        PrintCadena salto
+        PrintCadena salto2
         PrintCadena msgModa1
         PrintCadena cadenaResult
         POP AX
@@ -1021,14 +1021,14 @@ Moda2 MACRO
         MOV SI, 0
         MOV base, 10000
         CrearCadena entero, cadenaResult
-        MOV cadenaResult[SI], 46
+        MOV cadenaResult[SI], 36
 
         ;PrintCadena salto
         ;PrintCadena msgModa1
         ;PrintCadena cadenaResult
 
         EscribirArchivo msj3
-        EscribirArchivo cadenaResult
+        EscribirArchivo2 cadenaResult
         EscribirArchivo salto2
         
 
@@ -1050,7 +1050,7 @@ Moda2 MACRO
 
         POP AX
         
-        CMP AL, tablaFrecuencias[DI]
+        CMP AL, tablaF[DI]
         JA ExitCalcModa
         JMP CicloModa
 
@@ -1094,13 +1094,15 @@ PrintTablaFrecuencias2 MACRO
         MOV base, 10000
         CrearCadena entero, cadenaResult
 
-        MOV cadenaResult[SI], 46
+        MOV cadenaResult[SI], 36
 
         EscribirArchivo espacios
         EscribirArchivo espacios
         EscribirArchivo formatoTabla
         EscribirArchivo espacios
-        EscribirArchivo cadenaResult
+        EscribirArchivo espacios
+        EscribirArchivo2 cadenaResult
+        EscribirArchivo espacios
 
         POP AX
         MOV entero, AX
@@ -1108,7 +1110,7 @@ PrintTablaFrecuencias2 MACRO
         MOV SI, 0
         MOV base, 10000
         CrearCadena entero, cadenaResult
-        MOV cadenaResult[SI], 32 
+        MOV cadenaResult[SI], 36
         ;PrintCadena espacios
         EscribirArchivo espacios
 
@@ -1116,7 +1118,9 @@ PrintTablaFrecuencias2 MACRO
         EscribirArchivo Barra
 
         EscribirArchivo espacios
-        EscribirArchivo cadenaResult
+        EscribirArchivo espacios
+        EscribirArchivo2 cadenaResult
+        EscribirArchivo espacios
         EscribirArchivo espacios
         EscribirArchivo formatoTabla
         EscribirArchivo salto2
@@ -1130,4 +1134,57 @@ PrintTablaFrecuencias2 MACRO
 
 
     ExitPrintTabla:
+ENDM
+
+Clean MACRO
+    mov numE, 1
+    mov indexDatos,  0
+    mov extensionArchivo, 0
+    mov posApuntador, 0
+    mov numDatos, 0
+    mov base, 10000
+
+    mov si, 00h
+estoyAburrido:
+    mov tablaF[si], "$"
+    inc si
+    cmp si, 400
+    jne estoyAburrido
+
+    mov si, 00h
+estoyAburrido2:
+    mov bufferDatos[si], "$"
+    inc si
+    cmp si, 1200
+    jne estoyAburrido2
+ENDM
+
+;----------------
+DibujarLineas MACRO
+
+    Ciclo7:
+        Ciclo6:
+
+        sub al, 20
+        pop cx
+        loop Ciclo7
+
+    mov dx,100
+    mov bx, 13
+    mov al, 5
+    mov cx, 100
+
+    Ciclo8:
+        Ciclo9:
+            int 10h
+            inc dx
+            loop Ciclo9
+            cmp dx, 200
+            JNE Ciclo9
+
+        inc cx
+        mov dx,100
+        dec bx
+        JNZ Ciclo8
+
 ENDM

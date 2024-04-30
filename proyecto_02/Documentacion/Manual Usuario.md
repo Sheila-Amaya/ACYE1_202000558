@@ -9,7 +9,7 @@
 
 ### MANUAL DE USUARIO
 #### INFORMACIÓN DEL SISTEMA
-*...*
+*Esta plataforma puede ejecutar varias métricas estadísticas y mostrarlas según se soliciten. Además, la plataforma puede generar varias gráficas para ayudar a los usuarios a comprender los datos que se están analizando.*
 
 #### RECURSOS NECESARIOS
 - 2GB de RAM.
@@ -25,20 +25,21 @@
 
 #### FUNCIONAMIENTO DEL SISTEMA
 
-1. *Al iniciar el programa .*
-![IMAGEN1](./imagenes/1.png)
+Para usar la plataforma de análisis de datos, sigue estos pasos:
 
-2. **
-![IMAGEN1](./imagenes/2.png)
-
-3. *.*
-![IMAGEN1](./imagenes/3.png)
-
-4. *.*
-![IMAGEN1](./imagenes/4.png)
-
-5. *.*
+1. *Al iniciar el programa muestra el logo de la aplicaion.*
 ![IMAGEN1](./imagenes/5.png)
 
-8. **
-![IMAGEN1](./imagenes/8.png)
+1. *Prepar un archivo CSV con los datos que quieren analizar.*
+![IMAGEN1](./imagenes/1.png)
+
+2. *Por medio de comandos se puede acceder a funciones especificas de la aplicacion*
+![IMAGEN1](./imagenes/2.png)
+
+3. *Entre las funciones de la aplicacion estan: prom, moda, max,min,contador, graf_barra:asc, graf_barra_desc, graf_line ,abrir , limpiar*
+![IMAGEN1](./imagenes/3.png)
+
+4. *Generacion de un reporte con los datos obtenidos anteriormente de los comados en un txt*
+![IMAGEN1](./imagenes/4.png)
+
+
